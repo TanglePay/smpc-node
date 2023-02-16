@@ -17,41 +17,42 @@
 package smpc
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/anyswap/FastMulThreshold-DSA/internal/common"
-	"github.com/anyswap/FastMulThreshold-DSA/smpc-lib/crypto/ec2"
-	"github.com/anyswap/FastMulThreshold-DSA/smpc-lib/ecdsa/keygen"
-	smpclib "github.com/anyswap/FastMulThreshold-DSA/smpc-lib/smpc"
-	"github.com/anyswap/FastMulThreshold-DSA/log"
 	"math/big"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
-	"encoding/hex"
+
+	"github.com/anyswap/FastMulThreshold-DSA/internal/common"
+	"github.com/anyswap/FastMulThreshold-DSA/log"
+	"github.com/anyswap/FastMulThreshold-DSA/smpc-lib/crypto/ec2"
+	"github.com/anyswap/FastMulThreshold-DSA/smpc-lib/ecdsa/keygen"
+	smpclib "github.com/anyswap/FastMulThreshold-DSA/smpc-lib/smpc"
 )
 
 //---------------------------------------ECDSA start-----------------------------------------------------------------------
 
 // ProcessInboundMessages Analyze the obtained P2P messages and enter next round
 func ProcessInboundMessages(msgprex string, finishChan chan struct{}, wg *sync.WaitGroup, ch chan interface{}) {
-    	if msgprex == "" {
-	    return
+	if msgprex == "" {
+		return
 	}
 
 	defer wg.Done()
-	//log.Info("start processing inbound messages")
+	fmt.Printf("start processing inbound messages, key = %v \n", msgprex)
 	w, err := FindWorker(msgprex)
 	if w == nil || err != nil {
-		log.Error("====================ProcessInboundMessages,not found worker by key===============","key",msgprex)
+		log.Error("====================ProcessInboundMessages,not found worker by key===============", "key", msgprex)
 		res := RPCSmpcRes{Ret: "", Err: fmt.Errorf("fail to process inbound messages")}
 		ch <- res
 		return
 	}
 
-	defer log.Info("stop processing inbound messages","key",msgprex)
+	defer log.Info("stop processing inbound messages", "key", msgprex)
 	for {
 		select {
 		case <-finishChan:
@@ -63,20 +64,20 @@ func ProcessInboundMessages(msgprex string, finishChan chan struct{}, wg *sync.W
 				ch <- res
 				return
 			}
-			
+
 			///dul?
 			hexs := Keccak256Hash([]byte(strings.ToLower(m))).Hex()
-			log.Debug("========================ProcessInboundMessages,get msg====================","msg",m,"key",msgprex)
+			log.Debug("========================ProcessInboundMessages,get msg====================", "msg", m, "key", msgprex)
 			_, exist2 := w.Msg56[hexs]
 			if exist2 {
-			   break 
+				break
 			}
 			///
 
 			msgmap := make(map[string]string)
 			err := json.Unmarshal([]byte(m), &msgmap)
 			if err != nil {
-				log.Error("======================ProcessInboundMessages,unmarshal msg error===============","key",msgprex,"msg",m,"err",err)
+				log.Error("======================ProcessInboundMessages,unmarshal msg error===============", "key", msgprex, "msg", m, "err", err)
 				res := RPCSmpcRes{Ret: "", Err: err}
 				ch <- res
 				return
@@ -89,29 +90,29 @@ func ProcessInboundMessages(msgprex string, finishChan chan struct{}, wg *sync.W
 
 			mm := GetRealMessage(msgmap)
 			if mm == nil {
-				log.Error("======================ProcessInboundMessages,get msg error=================","key",msgprex,"msg",m,"err",err)
+				log.Error("======================ProcessInboundMessages,get msg error=================", "key", msgprex, "msg", m, "err", err)
 				res := RPCSmpcRes{Ret: "", Err: fmt.Errorf("fail to process inbound messages")}
 				ch <- res
 				return
 			}
-			
+
 			/////check whether the msg already exists in the msg list before update the msg list.
 			//dul := w.DNode.DulMessage(mm)
 			//if dul {
-			//   break 
+			//   break
 			//}
 			/////
-			
+
 			//check sig
 			if msgmap["Sig"] == "" {
-				log.Error("======================ProcessInboundMessages,verify sig fail=====================","key",msgprex,"msg",m,"err",err)
+				log.Error("======================ProcessInboundMessages,verify sig fail=====================", "key", msgprex, "msg", m, "err", err)
 				res := RPCSmpcRes{Ret: "", Err: fmt.Errorf("verify sig fail,sig data error")}
 				ch <- res
 				return
 			}
 
 			if msgmap["ENode"] == "" {
-				log.Error("======================ProcessInboundMessages,verify sig fail=====================","key",msgprex,"msg",m,"err",err)
+				log.Error("======================ProcessInboundMessages,verify sig fail=====================", "key", msgprex, "msg", m, "err", err)
 				res := RPCSmpcRes{Ret: "", Err: fmt.Errorf("verify sig fail,enode info error")}
 				ch <- res
 				return
@@ -119,44 +120,44 @@ func ProcessInboundMessages(msgprex string, finishChan chan struct{}, wg *sync.W
 
 			sig, err := hex.DecodeString(msgmap["Sig"])
 			if err != nil {
-			    common.Error("[KEYGEN] decode msg sig data error","err",err,"key",msgprex)
-			    res := RPCSmpcRes{Ret: "", Err: err}
-			    ch <- res
-			    return
+				common.Error("[KEYGEN] decode msg sig data error", "err", err, "key", msgprex)
+				res := RPCSmpcRes{Ret: "", Err: err}
+				ch <- res
+				return
 			}
-			
-			if !checkP2pSig(sig,mm,msgmap["ENode"]) {
-			    common.Error("===============keygen,check p2p msg fail===============","sig",sig,"sender",msgmap["ENode"],"msg type",msgmap["Type"])
-			    res := RPCSmpcRes{Ret: "", Err: fmt.Errorf("check msg sig fail")}
-			    ch <- res
-			    return
+
+			if !checkP2pSig(sig, mm, msgmap["ENode"]) {
+				common.Error("===============keygen,check p2p msg fail===============", "sig", sig, "sender", msgmap["ENode"], "msg type", msgmap["Type"])
+				res := RPCSmpcRes{Ret: "", Err: fmt.Errorf("check msg sig fail")}
+				ch <- res
+				return
 			}
 
 			// check fromID
-			_,UID := GetNodeUID(msgmap["ENode"], "EC256K1",w.groupid)
+			_, UID := GetNodeUID(msgmap["ENode"], "EC256K1", w.groupid)
 			id := fmt.Sprintf("%v", UID)
 			uid := hex.EncodeToString([]byte(id))
-			if !strings.EqualFold(uid,mm.GetFromID()) {
-			    common.Error("===============keygen,check p2p msg fail===============","UID",UID,"uid",uid,"fromID",mm.GetFromID(),"gid",w.groupid,"sender",msgmap["ENode"],"msg type",msgmap["Type"],"err","check from ID fail")
-			    res := RPCSmpcRes{Ret: "", Err: fmt.Errorf("check from ID fail")}
-			    ch <- res
-			    return
+			if !strings.EqualFold(uid, mm.GetFromID()) {
+				common.Error("===============keygen,check p2p msg fail===============", "UID", UID, "uid", uid, "fromID", mm.GetFromID(), "gid", w.groupid, "sender", msgmap["ENode"], "msg type", msgmap["Type"], "err", "check from ID fail")
+				res := RPCSmpcRes{Ret: "", Err: fmt.Errorf("check from ID fail")}
+				ch <- res
+				return
 			}
-		
+
 			// check whether 'from' is in the group
 			succ := false
 			_, nodes := GetGroup(w.groupid)
 			others := strings.Split(nodes, common.Sep2)
 			for _, v := range others {
-			    node2 := ParseNode(v) //bug??
-			    if strings.EqualFold(node2,msgmap["ENode"]) {
-				succ = true
-				break
-			    }
+				node2 := ParseNode(v) //bug??
+				if strings.EqualFold(node2, msgmap["ENode"]) {
+					succ = true
+					break
+				}
 			}
 
 			if !succ {
-				common.Error("===============keygen,check p2p msg fail===============","sig",sig,"sender",msgmap["ENode"],"msg type",msgmap["Type"])
+				common.Error("===============keygen,check p2p msg fail===============", "sig", sig, "sender", msgmap["ENode"], "msg type", msgmap["Type"])
 				res := RPCSmpcRes{Ret: "", Err: fmt.Errorf("check msg sig fail")}
 				ch <- res
 				return
@@ -175,32 +176,32 @@ func ProcessInboundMessages(msgprex string, finishChan chan struct{}, wg *sync.W
 			//w.Msg56.WriteMap(hexs,true)
 			w.Msg56[hexs] = true
 
-		       //if !dul {
-		       //////also broacast to group for msg
-		       if mm.IsBroadcast() {
-			   go func(msg string,gid string) {
-			       for i:=0;i<1;i++ {
-				   log.Debug("================ProcessInboundMessages,also broacast to group for msg===================","msg type",mm.GetMsgType(),"key",msgprex,"msg",msg,"gid",gid)
-				   SendMsgToSmpcGroup(msg,gid)
-				   //time.Sleep(time.Duration(1) * time.Second) //1000 == 1s
-			       }
-			   }(m,w.groupid)
-		       //}
-		       //////
-		   }
-	       }
+			//if !dul {
+			//////also broacast to group for msg
+			if mm.IsBroadcast() {
+				go func(msg string, gid string) {
+					for i := 0; i < 1; i++ {
+						log.Debug("================ProcessInboundMessages,also broacast to group for msg===================", "msg type", mm.GetMsgType(), "key", msgprex, "msg", msg, "gid", gid)
+						SendMsgToSmpcGroup(msg, gid)
+						//time.Sleep(time.Duration(1) * time.Second) //1000 == 1s
+					}
+				}(m, w.groupid)
+				//}
+				//////
+			}
+		}
 	}
 }
 
 // GetRealMessage get the message data struct by map. (p2p msg ---> map)
 func GetRealMessage(msg map[string]string) smpclib.Message {
-    	if msg == nil {
-	    return nil
+	if msg == nil {
+		return nil
 	}
 
 	from := msg["FromID"]
 	if from == "" {
-	    return nil
+		return nil
 	}
 
 	var to []string
@@ -218,7 +219,7 @@ func GetRealMessage(msg map[string]string) smpclib.Message {
 	if msg["Type"] == "KGRound1Message" {
 		pub := &ec2.PublicKey{}
 		if msg["U1PaillierPk"] == "" {
-		    return nil
+			return nil
 		}
 
 		err := pub.UnmarshalJSON([]byte(msg["U1PaillierPk"]))
@@ -226,13 +227,13 @@ func GetRealMessage(msg map[string]string) smpclib.Message {
 			comc, _ := new(big.Int).SetString(msg["ComC"], 10)
 			ComCBip32, _ := new(big.Int).SetString(msg["ComC_bip32"], 10)
 			if comc == nil || ComCBip32 == nil {
-			    return nil
+				return nil
 			}
 
 			kg := &keygen.KGRound1Message{
 				KGRoundMessage: new(keygen.KGRoundMessage),
 				ComC:           comc,
-				ComCBip32:     ComCBip32,
+				ComCBip32:      ComCBip32,
 				U1PaillierPk:   pub,
 			}
 			kg.SetFromID(from)
@@ -247,7 +248,7 @@ func GetRealMessage(msg map[string]string) smpclib.Message {
 		id, _ := new(big.Int).SetString(msg["ID"], 10)
 		sh, _ := new(big.Int).SetString(msg["Share"], 10)
 		if id == nil || sh == nil {
-		    return nil
+			return nil
 		}
 
 		kg := &keygen.KGRound2Message{
@@ -265,7 +266,7 @@ func GetRealMessage(msg map[string]string) smpclib.Message {
 	if msg["Type"] == "KGRound2Message1" {
 		c1, _ := new(big.Int).SetString(msg["C1"], 10)
 		if c1 == nil {
-		    return nil
+			return nil
 		}
 
 		kg := &keygen.KGRound2Message1{
@@ -280,46 +281,46 @@ func GetRealMessage(msg map[string]string) smpclib.Message {
 
 	//2-2 message
 	if msg["Type"] == "KGRound2Message2" {
-	    if msg["SfPf"] == "" {
-		return nil
-	    }
-
-	    if msg["Num"] == "" {
-		return nil
-	    }
-
-	    pf := &ec2.SquareFreeProof{}
-	    err := pf.UnmarshalJSON([]byte(msg["SfPf"]))
-	    if err == nil {
-		num, ok := new(big.Int).SetString(msg["Num"], 10)
-		if !ok {
-		    return nil
+		if msg["SfPf"] == "" {
+			return nil
 		}
 
-		kg := &keygen.KGRound2Message2{
-		    KGRoundMessage: new(keygen.KGRoundMessage),
-		    Num:		num,
-		    SfPf:             pf,
+		if msg["Num"] == "" {
+			return nil
 		}
-		kg.SetFromID(from)
-		kg.SetFromIndex(index)
-		kg.ToID = to
-		return kg
-	    }
+
+		pf := &ec2.SquareFreeProof{}
+		err := pf.UnmarshalJSON([]byte(msg["SfPf"]))
+		if err == nil {
+			num, ok := new(big.Int).SetString(msg["Num"], 10)
+			if !ok {
+				return nil
+			}
+
+			kg := &keygen.KGRound2Message2{
+				KGRoundMessage: new(keygen.KGRoundMessage),
+				Num:            num,
+				SfPf:           pf,
+			}
+			kg.SetFromID(from)
+			kg.SetFromIndex(index)
+			kg.ToID = to
+			return kg
+		}
 	}
 
 	//3 message
 	if msg["Type"] == "KGRound3Message" {
-	    if msg["ComU1GD"] == "" || msg["ComC1GD"] == "" || msg["U1PolyGG"] == "" {
-		return nil
-	    }
+		if msg["ComU1GD"] == "" || msg["ComC1GD"] == "" || msg["U1PolyGG"] == "" {
+			return nil
+		}
 
 		ugd := strings.Split(msg["ComU1GD"], ":")
 		u1gd := make([]*big.Int, len(ugd))
 		for k, v := range ugd {
 			u1gd[k], _ = new(big.Int).SetString(v, 10)
 			if u1gd[k] == nil {
-			    return nil
+				return nil
 			}
 		}
 
@@ -328,7 +329,7 @@ func GetRealMessage(msg map[string]string) smpclib.Message {
 		for k, v := range ucd {
 			u1cd[k], _ = new(big.Int).SetString(v, 10)
 			if u1cd[k] == nil {
-			    return nil
+				return nil
 			}
 		}
 
@@ -340,7 +341,7 @@ func GetRealMessage(msg map[string]string) smpclib.Message {
 			for kk, vv := range uggtmp2 {
 				tmp[kk], _ = new(big.Int).SetString(vv, 10)
 				if tmp[kk] == nil {
-				    return nil
+					return nil
 				}
 			}
 			ugg[k] = tmp
@@ -361,18 +362,18 @@ func GetRealMessage(msg map[string]string) smpclib.Message {
 
 	//3-1 message
 	if msg["Type"] == "KGRound3Message1" {
-	    if msg["Y"] == "" {
-		return nil
-	    }
+		if msg["Y"] == "" {
+			return nil
+		}
 
 		y, _ := new(big.Int).SetString(msg["Y"], 10)
 		if y == nil {
-		    return nil
+			return nil
 		}
 
 		kg := &keygen.KGRound3Message1{
-		    KGRoundMessage: new(keygen.KGRoundMessage),
-		    Y:             y,
+			KGRoundMessage: new(keygen.KGRoundMessage),
+			Y:              y,
 		}
 		kg.SetFromID(from)
 		kg.SetFromIndex(index)
@@ -384,34 +385,34 @@ func GetRealMessage(msg map[string]string) smpclib.Message {
 	if msg["Type"] == "KGRound4Message" {
 		nti := &ec2.NtildeH1H2{}
 		if msg["U1NtildeH1H2"] == "" {
-		    return nil
+			return nil
 		}
 
 		if err := nti.UnmarshalJSON([]byte(msg["U1NtildeH1H2"])); err == nil {
 			pf1 := &ec2.NtildeProof{}
 			if msg["NtildeProof1"] == "" {
-			    return nil
+				return nil
 			}
 
 			if err := pf1.UnmarshalJSON([]byte(msg["NtildeProof1"])); err == nil {
 				pf2 := &ec2.NtildeProof{}
 				if msg["NtildeProof2"] == "" {
-				    return nil
+					return nil
 				}
 
 				if err := pf2.UnmarshalJSON([]byte(msg["NtildeProof2"])); err == nil {
-				    if msg["ComXiC"] == "" {
-					return nil
-				    }
+					if msg["ComXiC"] == "" {
+						return nil
+					}
 
-				    comxic,_ := new(big.Int).SetString(msg["ComXiC"],10)
-				    
+					comxic, _ := new(big.Int).SetString(msg["ComXiC"], 10)
+
 					kg := &keygen.KGRound4Message{
 						KGRoundMessage: new(keygen.KGRoundMessage),
 						U1NtildeH1H2:   nti,
 						NtildeProof1:   pf1,
 						NtildeProof2:   pf2,
-						ComXiC:		comxic,
+						ComXiC:         comxic,
 					}
 					kg.SetFromID(from)
 					kg.SetFromIndex(index)
@@ -424,108 +425,108 @@ func GetRealMessage(msg map[string]string) smpclib.Message {
 
 	//5 message
 	if msg["Type"] == "KGRound5Message" {
-	    if msg["ComXiGD"] == "" {
-		return nil
-	    }
-
-	    xgd := strings.Split(msg["ComXiGD"], ":")
-	    xigd := make([]*big.Int, len(xgd))
-	    for k, v := range xgd {
-		xigd[k], _ = new(big.Int).SetString(v, 10)
-		if xigd[k] == nil {
-		    return nil
+		if msg["ComXiGD"] == "" {
+			return nil
 		}
-	    }
 
-	    kg := &keygen.KGRound5Message{
-		    KGRoundMessage: new(keygen.KGRoundMessage),
-		    ComXiGD:		xigd,
-	    }
-	    kg.SetFromID(from)
-	    kg.SetFromIndex(index)
-	    kg.ToID = to
-	    return kg
+		xgd := strings.Split(msg["ComXiGD"], ":")
+		xigd := make([]*big.Int, len(xgd))
+		for k, v := range xgd {
+			xigd[k], _ = new(big.Int).SetString(v, 10)
+			if xigd[k] == nil {
+				return nil
+			}
+		}
+
+		kg := &keygen.KGRound5Message{
+			KGRoundMessage: new(keygen.KGRoundMessage),
+			ComXiGD:        xigd,
+		}
+		kg.SetFromID(from)
+		kg.SetFromIndex(index)
+		kg.ToID = to
+		return kg
 	}
 
 	//5-1 message
 	if msg["Type"] == "KGRound5Message1" {
-	    if msg["HvPf"] == "" || msg["Num"] == "" {
-		return nil
-	    }
-
-	    pf := &ec2.HvProof{}
-	    err := pf.UnmarshalJSON([]byte(msg["HvPf"]))
-	    if err == nil {
-		num, ok := new(big.Int).SetString(msg["Num"], 10)
-		if !ok {
-		    return nil
+		if msg["HvPf"] == "" || msg["Num"] == "" {
+			return nil
 		}
 
-		kg := &keygen.KGRound5Message1{
-		    KGRoundMessage: new(keygen.KGRoundMessage),
-		    Num:		num,
-		    HvPf:             pf,
+		pf := &ec2.HvProof{}
+		err := pf.UnmarshalJSON([]byte(msg["HvPf"]))
+		if err == nil {
+			num, ok := new(big.Int).SetString(msg["Num"], 10)
+			if !ok {
+				return nil
+			}
+
+			kg := &keygen.KGRound5Message1{
+				KGRoundMessage: new(keygen.KGRoundMessage),
+				Num:            num,
+				HvPf:           pf,
+			}
+			kg.SetFromID(from)
+			kg.SetFromIndex(index)
+			kg.ToID = to
+			return kg
 		}
-		kg.SetFromID(from)
-		kg.SetFromIndex(index)
-		kg.ToID = to
-		return kg
-	    }
 	}
 
 	//5-2 message
 	if msg["Type"] == "KGRound5Message2" {
-	    if msg["SfPf"] == "" {
-		return nil
-	    }
-
-	    if msg["Num"] == "" {
-		return nil
-	    }
-
-	    pf := &ec2.SquareFreeProof{}
-	    err := pf.UnmarshalJSON([]byte(msg["SfPf"]))
-	    if err == nil {
-		num, ok := new(big.Int).SetString(msg["Num"], 10)
-		if !ok {
-		    return nil
+		if msg["SfPf"] == "" {
+			return nil
 		}
 
-		kg := &keygen.KGRound5Message2{
-		    KGRoundMessage: new(keygen.KGRoundMessage),
-		    Num:		num,
-		    SfPf:             pf,
+		if msg["Num"] == "" {
+			return nil
 		}
-		kg.SetFromID(from)
-		kg.SetFromIndex(index)
-		kg.ToID = to
-		return kg
-	    }
+
+		pf := &ec2.SquareFreeProof{}
+		err := pf.UnmarshalJSON([]byte(msg["SfPf"]))
+		if err == nil {
+			num, ok := new(big.Int).SetString(msg["Num"], 10)
+			if !ok {
+				return nil
+			}
+
+			kg := &keygen.KGRound5Message2{
+				KGRoundMessage: new(keygen.KGRoundMessage),
+				Num:            num,
+				SfPf:           pf,
+			}
+			kg.SetFromID(from)
+			kg.SetFromIndex(index)
+			kg.ToID = to
+			return kg
+		}
 	}
 
 	//6 message
 	if msg["Type"] == "KGRound6Message" {
-	    b := false
-	    if msg["CheckPubkeyStatus"] == "true" {
-		    b = true
-	    }
-
-	    if msg["U1zkXiProof"] == "" {
-		return nil
-	    }
-	    
-	    zk := &ec2.ZkXiProof{}
-	    if err := zk.UnmarshalJSON([]byte(msg["U1zkXiProof"])); err == nil {
-		kg := &keygen.KGRound6Message{
-			KGRoundMessage:      new(keygen.KGRoundMessage),
-			U1zkXiProof:     zk,
-			CheckPubkeyStatus: b,
+		b := false
+		if msg["CheckPubkeyStatus"] == "true" {
+			b = true
 		}
-		kg.SetFromID(from)
-		kg.SetFromIndex(index)
-		kg.ToID = to
-		return kg
-	    }
+
+		if msg["U1zkXiProof"] == "" {
+			return nil
+		}
+
+		zk := &ec2.ZkXiProof{}
+		if err := zk.UnmarshalJSON([]byte(msg["U1zkXiProof"])); err == nil {
+			kg := &keygen.KGRound6Message{
+				KGRoundMessage:    new(keygen.KGRoundMessage),
+				U1zkXiProof:       zk,
+				CheckPubkeyStatus: b,
+			}
+			kg.SetFromID(from)
+			kg.SetFromIndex(index)
+			kg.ToID = to
+			return kg
+		}
 	}
 
 	kg := &keygen.KGRound0Message{
@@ -538,25 +539,25 @@ func GetRealMessage(msg map[string]string) smpclib.Message {
 	return kg
 }
 
-// processKeyGen  Obtain the data to be sent in each round and send it to other nodes until the end of the request command 
+// processKeyGen  Obtain the data to be sent in each round and send it to other nodes until the end of the request command
 func processKeyGen(msgprex string, errChan chan struct{}, outCh <-chan smpclib.Message, endCh <-chan keygen.LocalDNodeSaveData) error {
-    	if msgprex == "" {
-	    return errors.New("param error")
+	if msgprex == "" {
+		return errors.New("param error")
 	}
 
 	for {
 		select {
 		case <-errChan: // when keyGenParty return
-			log.Error("=========== processKeyGen,error channel closed fail to start local smpc node ===========","key", msgprex)
+			log.Error("=========== processKeyGen,error channel closed fail to start local smpc node ===========", "key", msgprex)
 			return errors.New("error channel closed fail to start local smpc node")
 
 		case <-time.After(time.Second * time.Duration(EcKeygenTimeout)):
-			log.Error("=========== processKeyGen,keygen timeout ============","key", msgprex)
+			log.Error("=========== processKeyGen,keygen timeout ============", "key", msgprex)
 			return errors.New("keygen timeout")
 		case msg := <-outCh:
 			err := ProcessOutCh(msgprex, msg)
 			if err != nil {
-				log.Error("================ processKeyGen,process outch fail ================","err",err,"key",msgprex)
+				log.Error("================ processKeyGen,process outch fail ================", "err", err, "key", msgprex)
 				return err
 			}
 		case msg := <-endCh:
@@ -591,7 +592,7 @@ func processKeyGen(msgprex string, errChan chan struct{}, outCh <-chan smpclib.M
 				s3 = string(v.H2.Bytes())
 				ss = ss + s1 + common.SepSave + s2 + common.SepSave + s3 + common.SepSave
 			}
-			
+
 			ss += string(msg.U1NtildePrivData.Alpha.Bytes())
 			ss += common.SepSave
 			ss += string(msg.U1NtildePrivData.Beta.Bytes())
@@ -615,7 +616,7 @@ type KGLocalDBSaveData struct {
 	MsgToEnode map[string]string
 }
 
-// OutMap  Convert KGLocalDBSaveData data struct to map 
+// OutMap  Convert KGLocalDBSaveData data struct to map
 func (kgsave *KGLocalDBSaveData) OutMap() map[string]string {
 	out := kgsave.Save.OutMap()
 	for key, value := range kgsave.MsgToEnode {
@@ -630,9 +631,9 @@ func GetKGLocalDBSaveData(data map[string]string) *KGLocalDBSaveData {
 	save := keygen.GetLocalDNodeSaveData(data)
 	msgtoenode := make(map[string]string)
 	for _, v := range save.IDs {
-	    tmp := fmt.Sprintf("%v",v)
-	    id := strings.ToLower(hex.EncodeToString([]byte(tmp)))
-	    msgtoenode[id] = data[id]
+		tmp := fmt.Sprintf("%v", v)
+		id := strings.ToLower(hex.EncodeToString([]byte(tmp)))
+		msgtoenode[id] = data[id]
 	}
 
 	kgsave := &KGLocalDBSaveData{Save: save, MsgToEnode: msgtoenode}
@@ -652,9 +653,9 @@ func ProcessOutCh(msgprex string, msg smpclib.Message) error {
 		return fmt.Errorf("get worker fail")
 	}
 
-	sig,err := sigP2pMsg(msg,curEnode)
+	sig, err := sigP2pMsg(msg, curEnode)
 	if err != nil {
-	    return err
+		return err
 	}
 
 	msgmap := msg.OutMap()
@@ -663,7 +664,7 @@ func ProcessOutCh(msgprex string, msg smpclib.Message) error {
 	msgmap["Sig"] = hex.EncodeToString(sig)
 	s, err := json.Marshal(msgmap)
 	if err != nil {
-		log.Error("====================ProcessOutCh, marshal fail=================","err",err,"key",msgprex)
+		log.Error("====================ProcessOutCh, marshal fail=================", "err", err, "key", msgprex)
 		return err
 	}
 
@@ -678,7 +679,7 @@ func ProcessOutCh(msgprex string, msg smpclib.Message) error {
 				node2 := ParseNode(node)
 				if strings.EqualFold(enode, node2) {
 					//SendMsgToPeer(node, string(s))
-					SendMsgToPeerWithBrodcast(msgprex,node,string(s),w.groupid)
+					SendMsgToPeerWithBrodcast(msgprex, node, string(s), w.groupid)
 					break
 				}
 			}
@@ -687,4 +688,3 @@ func ProcessOutCh(msgprex string, msg smpclib.Message) error {
 
 	return nil
 }
-

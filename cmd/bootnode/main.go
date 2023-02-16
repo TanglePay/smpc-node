@@ -48,8 +48,8 @@ func main() {
 	flag.Parse()
 	err = getConfig(listenAddr, nodeKeyFile)
 	if err != nil {
-	    fmt.Errorf("get config: %v", err)
-	    return
+		fmt.Printf("get config: %v", err)
+		return
 	}
 
 	if *listenAddr == "" {
@@ -58,7 +58,7 @@ func main() {
 	fmt.Printf("nodeKeyFile: %v, listenAddr: %v\n", *nodeKeyFile, *listenAddr)
 	natm, err := nat.Parse(*natdesc)
 	if err != nil {
-		fmt.Errorf("-nat: %v", err)
+		fmt.Printf("-nat: %v", err)
 		return
 	}
 	switch {
@@ -66,12 +66,12 @@ func main() {
 		nodeKey, err = crypto.GenerateKey()
 		if err != nil {
 			//utils.Fatalf("could not generate key: %v", err)
-			fmt.Errorf("could not generate key: %v", err)
+			fmt.Printf("could not generate key: %v", err)
 			return
 		}
 		if err = crypto.SaveECDSA(*genKey, nodeKey); err != nil {
 			//utils.Fatalf("%v", err)
-			fmt.Errorf("%v", err)
+			fmt.Printf("%v", err)
 			return
 		}
 		return
@@ -86,7 +86,7 @@ func main() {
 	case *nodeKeyHex != "":
 		if nodeKey, err = crypto.HexToECDSA(*nodeKeyHex); err != nil {
 			//utils.Fatalf("-nodekeyhex: %v", err)
-			fmt.Errorf("-nodekeyhex: %v", err)
+			fmt.Printf("-nodekeyhex: %v", err)
 			return
 		}
 	}
@@ -101,21 +101,19 @@ func main() {
 		restrictList, err = netutil.ParseNetlist(*netrestrict)
 		if err != nil {
 			//utils.Fatalf("-netrestrict: %v", err)
-			fmt.Errorf("-netrestrict: %v", err)
+			fmt.Printf("-netrestrict: %v", err)
 			return
 		}
 	}
 
 	addr, err := net.ResolveUDPAddr("udp", *listenAddr)
 	if err != nil {
-		//utils.Fatalf("-ResolveUDPAddr: %v", err)
-		fmt.Errorf("-ResolveUDPAddr: %v", err)
+		fmt.Printf("-ResolveUDPAddr: %v", err)
 		return
 	}
 	conn, err := net.ListenUDP("udp", addr)
 	if err != nil {
-		//utils.Fatalf("-ListenUDP: %v", err)
-		fmt.Errorf("-ListenUDP: %v", err)
+		fmt.Printf("-ListenUDP: %v", err)
 		return
 	}
 
@@ -136,8 +134,7 @@ func main() {
 		NetRestrict:  restrictList,
 	}
 	if _, err := discover.ListenUDP(conn, cfg); err != nil {
-		//utils.Fatalf("%v", err)
-		fmt.Errorf("%v", err)
+		fmt.Printf("%v", err)
 		return
 	}
 

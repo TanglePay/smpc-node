@@ -51,15 +51,15 @@ The `gsmpc` will provide rpc service, the default RPC port is port 4449.
 1. Start bootnode and get the bootnode key that will be used for parameter --bootnodes
 ```shell
 ./build/bin/bootnode --genkey=boot.key
-./build/bin/bootnode --nodekey=boot.key
+nohup ./bootnode --nodekey=boot.key > boot.log 2>&1  &
 ```
 2. Start 3 mpc nodes
 ```shell
-./gsmpc --rpcport 5871 --bootnodes "enode://cf1dfd1bd276738af39fe9dae02680b2a60e8750590df08d1e61ec1b41a5085eadbb95b6a79cbd1b83b682383bb1a1ebae9d9369e99fd5725e1d736f3857180b@127.0.0.1:4440" --port 48541 --nodekey "node1.key" --verbosity 5 2>&1 | tee node1.log
+nohup ./gsmpc --rpcport 5871 --bootnodes "enode://cf1dfd1bd276738af39fe9dae02680b2a60e8750590df08d1e61ec1b41a5085eadbb95b6a79cbd1b83b682383bb1a1ebae9d9369e99fd5725e1d736f3857180b@127.0.0.1:4440" --port 48541 --nodekey "node1.key" --verbosity 5 > node1.log 2>&1 &
 
-./gsmpc --rpcport 5872 --bootnodes "enode://cf1dfd1bd276738af39fe9dae02680b2a60e8750590df08d1e61ec1b41a5085eadbb95b6a79cbd1b83b682383bb1a1ebae9d9369e99fd5725e1d736f3857180b@127.0.0.1:4440" --port 48542 --nodekey "node2.key" --verbosity 5 2>&1 | tee node2.log
+nohup ./gsmpc --rpcport 5872 --bootnodes "enode://cf1dfd1bd276738af39fe9dae02680b2a60e8750590df08d1e61ec1b41a5085eadbb95b6a79cbd1b83b682383bb1a1ebae9d9369e99fd5725e1d736f3857180b@127.0.0.1:4440" --port 48542 --nodekey "node2.key" --verbosity 5 > node2.log 2>&1 &
 
-./gsmpc --rpcport 5873 --bootnodes "enode://cf1dfd1bd276738af39fe9dae02680b2a60e8750590df08d1e61ec1b41a5085eadbb95b6a79cbd1b83b682383bb1a1ebae9d9369e99fd5725e1d736f3857180b@127.0.0.1:4440" --port 48543 --nodekey "node3.key" --verbosity 5 2>&1 | tee node3.log
+nohup ./gsmpc --rpcport 5873 --bootnodes "enode://cf1dfd1bd276738af39fe9dae02680b2a60e8750590df08d1e61ec1b41a5085eadbb95b6a79cbd1b83b682383bb1a1ebae9d9369e99fd5725e1d736f3857180b@127.0.0.1:4440" --port 48543 --nodekey "node3.key" --verbosity 5 > node3.log 2>&1 &
 ```
 3. Create group id containing 3 nodes
 ```shell

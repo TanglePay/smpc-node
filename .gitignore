@@ -1,5 +1,5 @@
 test/reqaddr.sh
 test/sign.sh
 .DS_Store
-build
+build/bin
 

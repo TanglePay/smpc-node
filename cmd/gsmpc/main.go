@@ -14,7 +14,7 @@
  *
  */
 
-// Package main  Gsmpc main program 
+// Package main  Gsmpc main program
 package main
 
 import (
@@ -39,13 +39,13 @@ import (
 	"github.com/anyswap/FastMulThreshold-DSA/internal/common"
 	"github.com/anyswap/FastMulThreshold-DSA/internal/flags"
 	"github.com/anyswap/FastMulThreshold-DSA/internal/params"
+	comlog "github.com/anyswap/FastMulThreshold-DSA/log"
 	"github.com/anyswap/FastMulThreshold-DSA/p2p"
 	"github.com/anyswap/FastMulThreshold-DSA/p2p/discover"
 	"github.com/anyswap/FastMulThreshold-DSA/p2p/layer2"
 	"github.com/anyswap/FastMulThreshold-DSA/p2p/nat"
 	rpcsmpc "github.com/anyswap/FastMulThreshold-DSA/rpc/smpc"
 	"github.com/anyswap/FastMulThreshold-DSA/smpc"
-	comlog "github.com/anyswap/FastMulThreshold-DSA/log"
 	"gopkg.in/urfave/cli.v1"
 )
 
@@ -77,7 +77,6 @@ func main() {
 // 5. Listen for the arrival of the sign command.
 // 6. Delete the data related to generating pubkey command, the signature command and the restore command from the corresponding sub database, and correspondingly change the status of the command data to timeout in the general database.
 func StartSmpc(c *cli.Context) {
-
 	//smpc.Tx_Test()
 	SetLogger()
 	go func() {
@@ -91,8 +90,8 @@ func StartSmpc(c *cli.Context) {
 
 	err := startP2pNode()
 	if err != nil {
-	    comlog.Error("start p2p node fail","err",err)
-	    return
+		comlog.Error("start p2p node fail", "err", err)
+		return
 	}
 
 	time.Sleep(time.Duration(30) * time.Second)
@@ -114,27 +113,27 @@ func SetLogger() {
 
 var (
 	//args
-	rpcport      int
-	port         int
-	config       string
-	bootnodes    string
-	keyfile      string
-	keyfilehex   string
-	pubkey       string
-	genKey       string
-	datadir      string
-	log          string
-	rotate       uint64
-	maxage       uint64
-	verbosity    uint64
-	json         bool
-	color        bool
-	waitmsg      uint64
-	trytimes     uint64
-	presignnum   uint64
-	maxaccepttime    uint64
-	bip32pre     uint64
-	syncpresign string
+	rpcport       int
+	port          int
+	config        string
+	bootnodes     string
+	keyfile       string
+	keyfilehex    string
+	pubkey        string
+	genKey        string
+	datadir       string
+	log           string
+	rotate        uint64
+	maxage        uint64
+	verbosity     uint64
+	json          bool
+	color         bool
+	waitmsg       uint64
+	trytimes      uint64
+	presignnum    uint64
+	maxaccepttime uint64
+	bip32pre      uint64
+	syncpresign   string
 
 	statDir = "stat"
 
@@ -206,7 +205,7 @@ func getConfig() error {
 			fmt.Printf("DecodeFile %v: %v\n", path, err)
 			return err
 		}
-		comlog.Info("config file","path", path)
+		comlog.Info("config file", "path", path)
 
 		nkey = cf.Gsmpc.Nodekey
 		bnodes = cf.Gsmpc.Bootnodes
@@ -228,14 +227,14 @@ func getConfig() error {
 	return nil
 }
 
-// startP2pNode  Start P2P service 
+// startP2pNode  Start P2P service
 func startP2pNode() error {
 	common.InitDir(datadir)
 	params.SetVersion(gitVersion, gitCommit, gitDate)
 	layer2.InitP2pDir()
 	err := getConfig()
 	if err != nil {
-	    return err
+		return err
 	}
 
 	if port == 0 {
@@ -250,7 +249,7 @@ func startP2pNode() error {
 	if genKey != "" {
 		nodeKey, err := crypto.GenerateKey()
 		if err != nil {
-			comlog.Error("could not generate key","err", err)
+			comlog.Error("could not generate key", "err", err)
 			os.Exit(1)
 		}
 		if err = crypto.SaveECDSA(genKey, nodeKey); err != nil {
@@ -281,30 +280,30 @@ func startP2pNode() error {
 	if keyfilehex != "" {
 		nodeKey, errkey = crypto.HexToECDSA(keyfilehex)
 		if errkey != nil {
-			comlog.Error("HexToECDSA nodekeyhex","keyfile", keyfilehex, "err",errkey)
+			comlog.Error("HexToECDSA nodekeyhex", "keyfile", keyfilehex, "err", errkey)
 			os.Exit(1)
 		}
-		comlog.Info("start p2p","keyfilehex",keyfilehex,"bootnodes",bootnodes)
+		comlog.Info("start p2p", "keyfilehex", keyfilehex, "bootnodes", bootnodes)
 	} else {
 		if keyfile == "" {
 			keyfile = fmt.Sprintf("node.key")
 		}
-		comlog.Info("start p2p","keyfilehex",keyfilehex,"bootnodes",bootnodes)
+		comlog.Info("start p2p", "keyfilehex", keyfilehex, "bootnodes", bootnodes)
 		smpc.KeyFile = keyfile
 		nodeKey, errkey = crypto.LoadECDSA(keyfile)
 		if errkey != nil {
 			nodeKey, _ = crypto.GenerateKey()
 			err = crypto.SaveECDSA(keyfile, nodeKey)
 			if err != nil {
-			    os.Exit(1)
+				os.Exit(1)
 			}
 
 			var kfd *os.File
 			kfd, _ = os.OpenFile(keyfile, os.O_WRONLY|os.O_APPEND, 0600)
-			_,err2 := kfd.WriteString(fmt.Sprintf("\nenode://%v\n", discover.PubkeyID(&nodeKey.PublicKey)))
+			_, err2 := kfd.WriteString(fmt.Sprintf("\nenode://%v\n", discover.PubkeyID(&nodeKey.PublicKey)))
 			if err2 != nil {
-			    kfd.Close()
-			    os.Exit(1)
+				kfd.Close()
+				os.Exit(1)
 			}
 			kfd.Close()
 		}
@@ -323,7 +322,7 @@ func startP2pNode() error {
 		rpcport = getPort(rpcport)
 		storeRPCPort(pubdir, rpcport)
 	}
-	comlog.Info("start gsmpc","port",port,"rpcport",rpcport)
+	comlog.Info("start gsmpc", "port", port, "rpcport", rpcport)
 	layer2.InitSelfNodeID(nodeidString)
 	layer2.InitIPPort(port)
 
@@ -346,13 +345,13 @@ func startP2pNode() error {
 	if err != nil {
 		return err
 	}
-	comlog.Info("=========== startP2pNode() ==========","bootnodes", bootNodes)
+	comlog.Info("=========== startP2pNode() ==========", "bootnodes", bootNodes)
 	nodeserv.Config.BootstrapNodes = []*discover.Node{bootNodes}
 
 	discover.CheckNetwokConnect()
 	go func() {
 		if err := nodeserv.Start(); err != nil {
-			comlog.Error("==== startP2pNode() ====","nodeserv.Start err", err)
+			comlog.Error("==== startP2pNode() ====", "nodeserv.Start err", err)
 			return
 		}
 
@@ -399,7 +398,7 @@ func GetFreePort() (int, error) {
 	return l.Addr().(*net.TCPAddr).Port, nil
 }
 
-// PortInUse Determine whether the port is used 
+// PortInUse Determine whether the port is used
 func PortInUse(port int) bool {
 	home := common.HomeDir()
 	if home != "" {
@@ -443,10 +442,10 @@ func updateRPCPort(pubdir, rpcport string) {
 	portDir := common.DefaultDataDir()
 	dir := filepath.Join(portDir, statDir, pubdir)
 	if common.FileExist(dir) != true {
-	    err := os.MkdirAll(dir, os.ModePerm)
-	    if err != nil {
-		return
-	    }
+		err := os.MkdirAll(dir, os.ModePerm)
+		if err != nil {
+			return
+		}
 	}
 	rpcfile := filepath.Join(dir, "rpcport")
 	fmt.Printf("==== updateRPCPort() ====, rpcfile: %v, rpcport: %v\n", rpcfile, rpcport)
@@ -457,7 +456,7 @@ func updateRPCPort(pubdir, rpcport string) {
 	} else {
 		_, err = f.Write([]byte(rpcport))
 		if err != nil {
-		    return
+			return
 		}
 	}
 }

@@ -115,7 +115,13 @@ func main() {
 		// req SMPC account
 		reqSmpcAddr()
 	case "REQADDRFROMKEYID":
-		reqSmpcAddrFromKeyId("0x8914c307557bf441a5301c4f64b8b4d5347d586875f72b385f70a88b0bcd2fdd")
+		reqSmpcAddrFromKeyId()
+	case "ACCOUNT":
+		accounts, err := client.Call("smpc_getAccounts", keyWrapper.Address.String(), *mode)
+		if err != nil {
+			panic(err)
+		}
+		fmt.Printf("\naddress = %s\naccounts = %s\n\n", keyWrapper.Address.String(), accounts)
 	case "ACCEPTREQADDR":
 		// req condominium account
 		acceptReqAddr()
@@ -448,25 +454,25 @@ func reqSmpcAddr() {
 	}
 }
 
-func reqSmpcAddrFromKeyId(keyID string) {
+func reqSmpcAddrFromKeyId() {
 	var statusJSON reqAddrStatus
-	reqStatus, err := client.Call("smpc_getReqAddrStatus", keyID)
+	reqStatus, err := client.Call("smpc_getReqAddrStatus", *key)
 	if err != nil {
 		fmt.Println("\tsmpc_getReqAddrStatus rpc error:", err)
 		return
 	}
 	statusJSONStr, err := getJSONResult(reqStatus)
 	if err != nil {
-		fmt.Printf("\tsmpc_getReqAddrStatus=NotStart\tkeyID=%s ", keyID)
+		fmt.Printf("\tsmpc_getReqAddrStatus=NotStart\tkeyID=%s ", *key)
 		fmt.Println("\tRequest not complete:", err)
 		return
 	}
 	if err := json.Unmarshal([]byte(statusJSONStr), &statusJSON); err != nil {
-		fmt.Println("\treqSMPCAddr:User=%s\tUnmarshal statusJSONStr fail:", err)
+		fmt.Println("\tUnmarshal statusJSONStr fail:", err)
 		return
 	}
 	if statusJSON.Status != "Success" {
-		fmt.Printf("\tsmpc_getReqAddrStatus=%s\tkeyID=%s", statusJSON.Status, keyID)
+		fmt.Printf("\tsmpc_getReqAddrStatus=%s\tkeyID=%s", statusJSON.Status, *key)
 	} else {
 		fmt.Printf("\tSuccess\tPubkey=%s\n", statusJSON.PubKey)
 	}
