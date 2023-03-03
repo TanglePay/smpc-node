@@ -264,6 +264,7 @@ func init() {
 	if err != nil {
 		if *passwdfile != "" {
 			pass, err := ioutil.ReadFile(*passwdfile)
+			fmt.Println(string(pass))
 			if err != nil {
 				fmt.Println("Read passwd file fail", err)
 				fmt.Println("Key decrypt error:")
@@ -393,7 +394,7 @@ func reqSmpcAddr() {
 		GroupID:       *gid,
 		ThresHold:     *ts,
 		Mode:          *mode,
-		AcceptTimeOut: "600",
+		AcceptTimeOut: "3600",
 		TimeStamp:     timestamp,
 		Sigs:          sigs,
 	}
