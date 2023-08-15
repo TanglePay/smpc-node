@@ -394,7 +394,7 @@ func reqSmpcAddr() {
 		GroupID:       *gid,
 		ThresHold:     *ts,
 		Mode:          *mode,
-		AcceptTimeOut: "3600",
+		AcceptTimeOut: "86400",
 		TimeStamp:     timestamp,
 		Sigs:          sigs,
 	}
