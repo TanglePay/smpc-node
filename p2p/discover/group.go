@@ -1429,7 +1429,7 @@ func CheckNetwokConnect() {
 					common.Info("CheckNetworkConnect success", "ip", RemoteIP, "port", RemotePort)
 					return
 				} else {
-					common.Info("CheckNetwokConnect failed, Please check network: port or bootnode", RemoteIP, RemotePort)
+					common.Info("CheckNetwokConnect failed, Please check network: port or bootnode", "ip", RemoteIP, "port", RemotePort)
 				}
 			}
 		}
