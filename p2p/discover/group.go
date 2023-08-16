@@ -47,13 +47,13 @@ var (
 	setlocaliptrue = false
 	LocalIP        string
 	RemoteIP       net.IP
-	RemotePort     = uint16(0)
-	RemoteUpdate   = false
-	SelfEnode      = ""
-	SelfIPPort     = ""
-	changed        = 0
-	Xp_changed     = 0
-	connectOk bool = false
+	RemotePort          = uint16(0)
+	RemoteUpdate        = false
+	SelfEnode           = ""
+	SelfIPPort          = ""
+	changed             = 0
+	Xp_changed          = 0
+	connectOk      bool = false
 
 	SDK_groupList map[NodeID]*Group = make(map[NodeID]*Group)
 	GroupSDK      sync.Mutex
@@ -70,12 +70,12 @@ var (
 	p2pDir                                    = ""
 	nodeOnline       map[NodeID]*OnLineStatus = make(map[NodeID]*OnLineStatus)
 
-	updateGroupsNode  bool           = false // update node dynamically
-	addNodes          map[NodeID]int = make(map[NodeID]int)
-	addNodesLock      sync.Mutex
-	loadedSeeds       map[NodeID]int = make(map[NodeID]int)
-	loadedDone        bool           = false
-	checkNetworkChan  chan int       = make(chan int, 1)
+	updateGroupsNode bool           = false // update node dynamically
+	addNodes         map[NodeID]int = make(map[NodeID]int)
+	addNodesLock     sync.Mutex
+	loadedSeeds      map[NodeID]int = make(map[NodeID]int)
+	loadedDone       bool           = false
+	checkNetworkChan chan int       = make(chan int, 1)
 )
 var (
 	Smpc_groupMemNum = 0
@@ -89,9 +89,9 @@ type OnLineStatus struct {
 }
 
 const (
-	SendWaitTime = 1 * time.Minute
+	SendWaitTime            = 1 * time.Minute
 	checkNetworkConnectTime = 10 * time.Second
-	pingCount    = 10
+	pingCount               = 10
 
 	Smpcprotocol_type = iota + 1
 	Xprotocol_type
@@ -324,7 +324,7 @@ func (t *udp) findgroup(gid, toid NodeID, toaddr *net.UDPAddr, target NodeID, p2
 	})
 	if errs != nil {
 		common.Debug("==== (t *udp) sendMsgToPeer ====", "errs", errs)
-		return nil,errs
+		return nil, errs
 	}
 	err := <-errc
 	return nodes, err
@@ -461,7 +461,7 @@ func (t *udp) sendToGroupCC(toid NodeID, toaddr *net.UDPAddr, msg string, p2pTyp
 		_, err = t.udpSendMsg(toid, toaddr, msg, number, p2pType, false)
 		if err != nil {
 			common.Debug("==== (t *udp) sendMsgToPeer ====", "err", common.CurrentTime(), err)
-			return "",err
+			return "", err
 		}
 	} else if len(msg) > 800 && len(msg) < 1600 {
 		number[1] = 1
@@ -469,14 +469,14 @@ func (t *udp) sendToGroupCC(toid NodeID, toaddr *net.UDPAddr, msg string, p2pTyp
 		_, err = t.udpSendMsg(toid, toaddr, msg[0:800], number, p2pType, false)
 		if err != nil {
 			common.Debug("=== (t *udp) sendMsgToPeer ====, err: %v\n", err)
-			return "",err
+			return "", err
 		} else {
 			number[1] = 2
 			number[2] = 2
 			_, err = t.udpSendMsg(toid, toaddr, msg[800:], number, p2pType, false)
 			if err != nil {
 				common.Debug("==== (t *udp) sendMsgToPeer ====", "eer", err)
-				return "",err
+				return "", err
 			}
 		}
 	} else {
@@ -490,12 +490,12 @@ func (req *getsmpcmessage) handle(t *udp, from *net.UDPAddr, fromID NodeID, mac 
 	//	return errExpired
 	//}
 	common.Debug("send ack ==== (req *getsmpcmessage) handle() ====", "to", from, "squencencen", req.Sequence)
-	_,err := t.send(from, byte(Ack_Packet), &Ack{
+	_, err := t.send(from, byte(Ack_Packet), &Ack{
 		Sequence:   req.Sequence,
 		Expiration: uint64(time.Now().Add(expiration).Unix()),
 	})
 	if err != nil {
-	    return err
+		return err
 	}
 
 	ss := fmt.Sprintf("get-%v-%v", fromID, req.Sequence)
@@ -564,12 +564,12 @@ func (req *smpcmessage) handle(t *udp, from *net.UDPAddr, fromID NodeID, mac []b
 	msgHash := crypto.Keccak256Hash([]byte(strings.ToLower(req.Msg))).Hex()
 	common.Debug("==== (req *smpcmessage) handle() ==== p2pBroatcast", "recv from target", fromID, "from", from, "msgHash", msgHash)
 	common.Debug("send ack ==== (req *smpcmessage) handle() ====", "to", from, "msg", req.Msg)
-	_,err := t.send(from, byte(Ack_Packet), &Ack{
+	_, err := t.send(from, byte(Ack_Packet), &Ack{
 		Sequence:   req.Sequence,
 		Expiration: uint64(time.Now().Add(expiration).Unix()),
 	})
 	if err != nil {
-	    return err
+		return err
 	}
 
 	ss := fmt.Sprintf("%v-%v", fromID, req.Sequence)
@@ -739,11 +739,11 @@ func setGroup(n *Node, replace string) {
 	setGroupCC(n, replace, Smpcprotocol_type)
 }
 
-func sendpeer(gid, toid NodeID, ipa *net.UDPAddr,p2pType int) {
-    err := SendToPeer(gid, toid, ipa, "", p2pType)
-    if err != nil {
-	return 
-    }
+func sendpeer(gid, toid NodeID, ipa *net.UDPAddr, p2pType int) {
+	err := SendToPeer(gid, toid, ipa, "", p2pType)
+	if err != nil {
+		return
+	}
 }
 
 func sendGroupToNode(groupList *Group, p2pType int, node *Node) { //nooo
@@ -762,7 +762,7 @@ func sendGroupToNode(groupList *Group, p2pType int, node *Node) { //nooo
 			ipa := &net.UDPAddr{IP: node.IP, Port: int(node.UDP)}
 			err := SendMsgToNode(node.ID, ipa, cDgid)
 			if err != nil {
-			    return
+				return
 			}
 
 			break
@@ -789,7 +789,7 @@ func sendGroupInit2Node(gid NodeID, node RpcNode, i int) {
 	ipa := &net.UDPAddr{IP: node.IP, Port: int(node.UDP)}
 	err := SendMsgToNode(node.ID, ipa, cDgid)
 	if err != nil {
-	    return
+		return
 	}
 }
 
@@ -876,7 +876,7 @@ func updateGroup(n *Node, p2pType int) { //nooo
 				sendGroupInit(g, p2pType)
 				err := StoreGroupToDb(g)
 				if err != nil {
-				    return
+					return
 				}
 
 				break
@@ -935,7 +935,7 @@ func updateGroupSDKNode(nd *Node, p2pType int) { //nooo
 					sendGroupInit(g, p2pType)
 					err := StoreGroupToDb(g)
 					if err != nil {
-					    return
+						return
 					}
 
 					break
@@ -1006,7 +1006,7 @@ func setGroupSDK(n *Node, replace string, p2pType int) {
 			sendGroupInit(SDK_groupList[n.ID], p2pType)
 			err := StoreGroupToDb(SDK_groupList[n.ID])
 			if err != nil {
-			    return
+				return
 			}
 		} else { // add self node
 			if len(groupSDKList) < SDK_groupNum {
@@ -1014,10 +1014,10 @@ func setGroupSDK(n *Node, replace string, p2pType int) {
 				groupSDKList = append(groupSDKList, n)
 				common.Debug("==== setGroupSDK() ====", "len(groupSDKList)", len(groupSDKList))
 				if len(groupSDKList) == (SDK_groupNum - 1) {
-				    err := StoreGroupSDKListToDb()
-				    if err != nil {
-					return
-				    }
+					err := StoreGroupSDKListToDb()
+					if err != nil {
+						return
+					}
 				}
 			}
 		}
@@ -1219,7 +1219,7 @@ func SendMsgToBroadcastNode(node *Node, msg string) error {
 
 func (t *udp) sendMsgToBroadcastNode(toid NodeID, toaddr *net.UDPAddr, msg string) error {
 	msgHash := crypto.Keccak256Hash([]byte(strings.ToLower(msg))).Hex()
-	common.Debug("sendMsgToBroadcastNode","toid",toid,"toaddr",toaddr,"msgHash",msgHash, "len", len(msg))
+	common.Debug("sendMsgToBroadcastNode", "toid", toid, "toaddr", toaddr, "msgHash", msgHash, "len", len(msg))
 	errc := t.pending(toid, msgBroadcastPacket, func(r interface{}) bool {
 		return true
 	})
@@ -1228,11 +1228,11 @@ func (t *udp) sendMsgToBroadcastNode(toid NodeID, toaddr *net.UDPAddr, msg strin
 		Expiration: uint64(time.Now().Add(expirationBroadcast).Unix()),
 	})
 	if errs != nil {
-		common.Debug("==== (t *udp) sendMsgToBroadcastNode ====", "errs", errs, "toid",toid,"toaddr",toaddr,"msgHash",msgHash, "len", len(msg))
+		common.Debug("==== (t *udp) sendMsgToBroadcastNode ====", "errs", errs, "toid", toid, "toaddr", toaddr, "msgHash", msgHash, "len", len(msg))
 		return errs
 	}
 	err := <-errc
-	common.Debug("sendMsgToBroadcastNode success","toid",toid,"toaddr",toaddr,"msgHash",msgHash)
+	common.Debug("sendMsgToBroadcastNode success", "toid", toid, "toaddr", toaddr, "msgHash", msgHash)
 	return err
 }
 func (req *messageBroadcast) name() string { return "MESSAGEBROADCAST/v4" }
@@ -1246,6 +1246,7 @@ func (req *messageBroadcast) handle(t *udp, from *net.UDPAddr, fromID NodeID, ma
 	go callMsgBroadcastEvent(req.Msg, fromID.String())
 	return nil
 }
+
 //end
 
 var groupcallback func(NodeID, string, interface{}, int, string)
@@ -1428,7 +1429,7 @@ func CheckNetwokConnect() {
 					common.Info("CheckNetworkConnect success", "ip", RemoteIP, "port", RemotePort)
 					return
 				} else {
-					common.Info("CheckNetwokConnect failed, Please check network: port or bootnode")
+					common.Info("CheckNetwokConnect failed, Please check network: port or bootnode", RemoteIP, RemotePort)
 				}
 			}
 		}
@@ -1541,8 +1542,8 @@ func StoreGroupToDb(groupInfo *Group) error { //nooo
 	common.Info("================ StoreGroupInfo() ================ new", "ac", ac)
 	err = db.Put([]byte(key), []byte(ss), nil)
 	if err != nil {
-	    db.Close()
-	    return err
+		db.Close()
+		return err
 	}
 
 	db.Close()
@@ -1614,7 +1615,7 @@ func StoreGroupSDKListToDb() error { //nooo
 	common.Debug("==== StoreGroupSDKListToDb() ==== new", "groupSDKList", ac)
 	err = db.Put([]byte(key), []byte(ss), nil)
 	if err != nil {
-	    db.Close()
+		db.Close()
 		return err
 	}
 
@@ -1730,12 +1731,12 @@ func Compress(c []byte) (string, error) {
 	var in bytes.Buffer
 	w, err := zlib.NewWriterLevel(&in, zlib.BestCompression-1)
 	if err != nil {
-	    return "", err
+		return "", err
 	}
 
-	_,err2 := w.Write(c)
+	_, err2 := w.Write(c)
 	if err2 != nil {
-	    return "", err2
+		return "", err2
 	}
 
 	w.Close()
@@ -1758,9 +1759,9 @@ func UnCompress(s string) (string, error) {
 	}
 
 	var out bytes.Buffer
-	_,err2 := io.Copy(&out, r)
+	_, err2 := io.Copy(&out, r)
 	if err2 != nil {
-	    return "", err2
+		return "", err2
 	}
 
 	return out.String(), nil
