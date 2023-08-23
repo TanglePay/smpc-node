@@ -1457,7 +1457,6 @@ func UpdateMyselfIP() {
 }
 
 func updateIPPort(ip net.IP, port uint16) {
-	//fmt.Printf("updateRemoteIP, IP:port = %v:%v\n\n", ip, port)
 	common.Info("============= updateRemoteIP() ============", "IP", ip, "port", port)
 	RemoteIP = ip
 	RemotePort = port
