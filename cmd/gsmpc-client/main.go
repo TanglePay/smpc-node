@@ -445,7 +445,7 @@ func reqSmpcAddr() {
 		return
 	}
 	if err := json.Unmarshal([]byte(statusJSONStr), &statusJSON); err != nil {
-		fmt.Println("\treqSMPCAddr:User=%s\tUnmarshal statusJSONStr fail:", err)
+		fmt.Printf("\treqSMPCAddr:User=%s\tUnmarshal statusJSONStr fail:%v", keyWrapper.Address.String(), err)
 		return
 	}
 	if statusJSON.Status != "Success" {

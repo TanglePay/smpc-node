@@ -90,7 +90,7 @@ type OnLineStatus struct {
 
 const (
 	SendWaitTime            = 1 * time.Minute
-	checkNetworkConnectTime = 10 * time.Second
+	checkNetworkConnectTime = 30 * time.Second
 	pingCount               = 10
 
 	Smpcprotocol_type = iota + 1

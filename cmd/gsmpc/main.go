@@ -63,17 +63,6 @@ var (
 )
 
 func main() {
-	//--rpcport $rpcport --bootnodes $boot --port $port --nodekey "./logs/node.key"
-	/*
-		os.Args = append(os.Args, "--rpcport")
-		os.Args = append(os.Args, "5871")
-		os.Args = append(os.Args, "--bootnodes")
-		os.Args = append(os.Args, "enode://c9774dfbcc77dc3f6c849e7ab972a2bed3e3e6304364aa9aafb0a830c1f12e55bc34f3da428e3e1ffb4e3f57fccb4413fe32fb71005657882a6e2f510e660825@18.162.150.38:4440")
-		os.Args = append(os.Args, "--port")
-		os.Args = append(os.Args, "48541")
-		os.Args = append(os.Args, "--nodekey")
-		os.Args = append(os.Args, "./logs/node.key")
-	*/
 	if err := app.Run(os.Args); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
