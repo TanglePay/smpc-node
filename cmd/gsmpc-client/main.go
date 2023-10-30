@@ -105,6 +105,8 @@ var (
 
 func main() {
 	switch *cmd {
+	case "ChangePwd":
+		changePwdOfKeystore()
 	case "EnodeSig":
 		// get enode after sign
 		enodeSig()
@@ -295,6 +297,21 @@ func init() {
 	signer = types.NewEIP155Signer(chainID)
 	// init RPC client
 	client = ethrpc.New(*url)
+}
+
+func changePwdOfKeystore() {
+	var newPwd string
+	fmt.Printf("Enter keystore's new password: ")
+	fmt.Scanf("%s", &newPwd)
+	keyjson, err := keystore.EncryptKey(keyWrapper, newPwd, keystore.StandardScryptN, keystore.StandardScryptP)
+	if err != nil {
+		panic(err)
+	}
+	var filename string
+	fmt.Printf("Enter new keystore's filename: ")
+	fmt.Scanf("%s", &filename)
+	os.WriteFile(filename, keyjson, 0666)
+	fmt.Println(string(keyjson))
 }
 
 // enodeSig get enode sign data, Format is "pubkey@IP:PORT" + hex.EncodeToString(crypto.Sign(crypto.Keccak256(pubkey), privateKey))
