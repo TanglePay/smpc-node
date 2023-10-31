@@ -14,7 +14,7 @@ echo -n "Enter keystore's password:"
 read -s pwd
 echo ""
 if [ -z "$pwd" ];then
-    echo -e "\e[31m panic!!! Database's password cann't be empty"
+    echo -e "\e[31m panic!!! keystore's password cann't be empty"
     exit
 fi
 
