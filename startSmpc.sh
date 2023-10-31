@@ -10,7 +10,7 @@ if [[ $result == "" ]] ; then
     exit
 fi
 
-echo -n "Enter database's password:"
+echo -n "Enter keystore's password:"
 read -s pwd
 echo ""
 if [ -z "$pwd" ];then
