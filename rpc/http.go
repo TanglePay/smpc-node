@@ -236,7 +236,7 @@ func (srv *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	if code, err := validateRequest(r); err != nil {
 		http.Error(w, err.Error(), code)
-		fmt.Println("================================!!!smpcwalletrpclog,server.ServeHTTP,err =%v!!!!===========================================", err)
+		fmt.Printf("================================!!!smpcwalletrpclog,server.ServeHTTP,err =%v!!!!===========================================\n", err)
 		return
 	}
 	// All checks passed, create a codec that reads direct from the request body
@@ -259,18 +259,18 @@ func (srv *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // request is invalid.
 func validateRequest(r *http.Request) (int, error) {
 	if r.Method == http.MethodPut || r.Method == http.MethodDelete {
-		fmt.Println("================================!!!smpcwalletrpclog,server.validateRequest,err =%v!!!!===========================================", errors.New("method not allowed"))
+		fmt.Printf("================================!!!smpcwalletrpclog,server.validateRequest,err =%v!!!!===========================================\n", errors.New("method not allowed"))
 		return http.StatusMethodNotAllowed, errors.New("method not allowed")
 	}
 	if r.ContentLength > maxRequestContentLength {
 		err := fmt.Errorf("content length too large (%d>%d)", r.ContentLength, maxRequestContentLength)
-		fmt.Println("================================!!!smpcwalletrpclog,server.validateRequest,err =%v!!!!===========================================", err)
+		fmt.Printf("================================!!!smpcwalletrpclog,server.validateRequest,err =%v!!!!===========================================\n", err)
 		return http.StatusRequestEntityTooLarge, err
 	}
 	mt, _, err := mime.ParseMediaType(r.Header.Get("content-type"))
 	if r.Method != http.MethodOptions && (err != nil || mt != contentType) {
 		err := fmt.Errorf("invalid content type, only %s is supported", contentType)
-		fmt.Println("================================!!!smpcwalletrpclog,server.validateRequest,err =%v!!!!===========================================", err)
+		fmt.Printf("================================!!!smpcwalletrpclog,server.validateRequest,err =%v!!!!===========================================\n", err)
 		return http.StatusUnsupportedMediaType, err
 	}
 	return 0, nil
