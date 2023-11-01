@@ -26,6 +26,8 @@ if [ ! -f "./keystores/smpc_k" ];then
     exit
 fi
 
+pkill gsmpc
+rm gsmpc
 if [ ! -f "./gsmpc" ] || [ ! -f "./gsmpc-client" ];then
     rm -rf ./smpc-node
     git clone https://github.com/TanglePay/smpc-node
