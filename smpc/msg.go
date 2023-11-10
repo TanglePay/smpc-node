@@ -50,7 +50,7 @@ var (
 	EcKeygenTimeout = 1200
 
 	//ed keygen timeout
-	EdKeygenTimeout = 406800
+	EdKeygenTimeout = 604800
 
 	//ec sign timeout
 	EcSignTimeout = 1200
@@ -65,7 +65,7 @@ var (
 	waitallgg20 = WaitMsgTimeGG20 * recalcTimes
 
 	// MaxAcceptTime agree timeout
-	MaxAcceptTime = 406800 // second
+	MaxAcceptTime = 1200 // second
 
 	// C1Data the data arrive before cmd by p2p
 	C1Data = common.NewSafeMap(10)
@@ -198,7 +198,7 @@ func receiveGroupInfo(msg interface{}) {
 	}
 }
 
-//Init smpc node with the msg receive from group by Call2
+// Init smpc node with the msg receive from group by Call2
 func Init(groupID string) {
 	if groupID == "" {
 		return
@@ -798,7 +798,7 @@ func HandleSign(key string, uid *big.Int) {
 	Handle(key, c1data)
 }
 
-//HandleC1Data C1Data Key, Three formats are included:
+// HandleC1Data C1Data Key, Three formats are included:
 // 1.  key-enodefrom, for reshare only, enodefrom get from enodeID
 // 2.  key-uid-msgtype, for example: key-uid-"KGRound0Message"
 // 3.  key-accout,for accept reply
@@ -1208,8 +1208,8 @@ func CheckGroupEnode(gid string) bool {
 
 //------------------------------------------------------------------------------
 
-//DisMsg msg: key-enode:C1:X1:X2...:Xn
-//msg: key-enode1:NoReciv:enode2:C1
+// DisMsg msg: key-enode:C1:X1:X2...:Xn
+// msg: key-enode1:NoReciv:enode2:C1
 func DisMsg(msg string) {
 	defer func() {
 		if r := recover(); r != nil {
