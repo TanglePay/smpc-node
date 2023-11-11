@@ -944,6 +944,9 @@ func GetRawType(raw string) (string, string) {
 
 	key, _, _, txdata, err := CheckRaw(raw)
 	if err != nil {
+		if len(raw) > 64 {
+			raw = raw[:64]
+		}
 		common.Error("=======================GetRawType,check accept raw data error===================", "raw", raw, "err", err)
 		return "", ""
 	}
