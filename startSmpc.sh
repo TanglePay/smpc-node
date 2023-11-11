@@ -28,6 +28,7 @@ fi
 
 pkill gsmpc
 rm gsmpc
+rm ./logs/node.log
 if [ ! -f "./gsmpc" ] || [ ! -f "./gsmpc-client" ];then
     rm -rf ./smpc-node
     git clone https://github.com/TanglePay/smpc-node
