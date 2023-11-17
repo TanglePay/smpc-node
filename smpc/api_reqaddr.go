@@ -204,9 +204,9 @@ func (req *ReqSmpcAddr) DoReq(raw string, workid int, sender string, ch chan int
 		newnoncenum, _ := new(big.Int).SetString(nonce, 10)
 		if newnoncenum.Cmp(curnoncenum) != 0 {
 			common.Error("===============DoReq,check nonce fail===================", "key", key, "account", from, "current nonce in db", curnoncenum, "keygen nonce", newnoncenum)
-			res := RPCSmpcRes{Ret: "", Tip: "", Err: fmt.Errorf("check nonce fail,account = %v,current nonce in db = %v,keygen nonce = %v", from, curnoncenum, newnoncenum)}
-			ch <- res
-			return false
+			//			res := RPCSmpcRes{Ret: "", Tip: "", Err: fmt.Errorf("check nonce fail,account = %v,current nonce in db = %v,keygen nonce = %v", from, curnoncenum, newnoncenum)}
+			//			ch <- res
+			//			return false
 		}
 		common.Info("===================DoReq,check nonce ok====================", "key ", key)
 

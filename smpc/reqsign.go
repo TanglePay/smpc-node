@@ -144,9 +144,9 @@ func DoSign(sbd *SignPickData, workid int, sender string, ch chan interface{}) e
 	newnoncenum, _ := new(big.Int).SetString(nonce, 10)
 	if newnoncenum.Cmp(curnoncenum) != 0 {
 		common.Error("===============DoSign,check nonce fail===================", "key", key, "account", from, "raw", sbd.Raw, "current nonce in db", curnoncenum, "sign nonce", newnoncenum)
-		res := RPCSmpcRes{Ret: "", Tip: "", Err: fmt.Errorf("check nonce fail,account = %v,current nonce in db = %v,keygen nonce = %v", from, curnoncenum, newnoncenum)}
-		ch <- res
-		return fmt.Errorf("check nonce fail,account = %v,current nonce in db = %v,sign nonce = %v", from, curnoncenum, newnoncenum)
+		//		res := RPCSmpcRes{Ret: "", Tip: "", Err: fmt.Errorf("check nonce fail,account = %v,current nonce in db = %v,keygen nonce = %v", from, curnoncenum, newnoncenum)}
+		//		ch <- res
+		//		return fmt.Errorf("check nonce fail,account = %v,current nonce in db = %v,sign nonce = %v", from, curnoncenum, newnoncenum)
 	}
 
 	_, err = SetSignNonce(from, nonce)
@@ -1323,7 +1323,8 @@ func GetMsgToEnode(keytype string, gid string, groupid string) map[string]string
 
 // PreSignEC3 execute the action of generating the pre-sign data.
 // msgprex = hash
-//  the return value is the generated pre-sign data.
+//
+//	the return value is the generated pre-sign data.
 func PreSignEC3(msgprex string, save string, sku1 *big.Int, pkx *big.Int, pky *big.Int, cointype string, ch chan interface{}, id int) *PreSignData {
 	if id < 0 || id >= len(workers) {
 		res := RPCSmpcRes{Ret: "", Err: fmt.Errorf("no find worker")}

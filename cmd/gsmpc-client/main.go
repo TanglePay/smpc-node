@@ -695,7 +695,7 @@ func sign() {
 	signMsgHash(hashs, contexts, -1)
 }
 
-//  preGenSignData Generate relevant data required for distributed sign in advance
+// preGenSignData Generate relevant data required for distributed sign in advance
 func preGenSignData() {
 	if len(subgids) == 0 {
 		panic(fmt.Errorf("error:sub group id array is empty"))
@@ -1121,7 +1121,7 @@ func acceptSign() {
 		var msgContext []string
 
 		if len(hashs) == 0 {
-			hashs = append(hashs, common.ToHex(crypto.Keccak256([]byte(*memo))))
+			hashs = append(hashs, hexutil.Encode(crypto.Keccak256([]byte(*memo))))
 		}
 
 		if len(contexts) == 0 {
