@@ -27,7 +27,7 @@ if [ ! -f "./keystores/smpc_k" ];then
 fi
 
 pkill gsmpc
-rm gsmpc
+rm gsmpc gsmpc-client
 rm ./logs/node.log
 if [ ! -f "./gsmpc" ] || [ ! -f "./gsmpc-client" ];then
     rm -rf ./smpc-node
