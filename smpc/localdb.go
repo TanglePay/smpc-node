@@ -252,7 +252,7 @@ func putBip32cToLocalDb(key []byte, value []byte) error {
 //------------------------------------------------------------------------------------------------------
 
 // deleteSkU1FromLocalDb delete Sk from local db
-func deleteSkU1FromLocalDb(key []byte) error {
+func DeleteSkU1FromLocalDb(key []byte) error {
 	if key == nil || dbsk == nil {
 		return fmt.Errorf("delete sku1 from db fail,param error")
 	}
@@ -270,7 +270,7 @@ func deleteSkU1FromLocalDb(key []byte) error {
 //------------------------------------------------------------------------------------------------
 
 // deleteBip32cFromLocalDb delete bip32 c value from local db
-func deleteBip32cFromLocalDb(key []byte) error {
+func DeleteBip32cFromLocalDb(key []byte) error {
 	if key == nil || dbbip32 == nil {
 		return fmt.Errorf("delete bip32c from db fail,param error")
 	}
@@ -495,7 +495,7 @@ func DeleteReShareInfoData(key []byte) error {
 func GetGroupDir() string { //TODO
 	dir := common.DefaultDataDir()
 	tmp := dir + "/dcrmdata/dcrmdb" + discover.GetLocalID().String() + "group"
-	if common.FileExist(tmp) == true {
+	if common.FileExist(tmp) {
 		return tmp
 	}
 
@@ -509,7 +509,7 @@ func GetGroupDir() string { //TODO
 func GetDbDir() string {
 	dir := common.DefaultDataDir()
 	tmp := dir + "/dcrmdata/dcrmdb" + curEnode
-	if common.FileExist(tmp) == true {
+	if common.FileExist(tmp) {
 		return tmp
 	}
 
@@ -535,7 +535,7 @@ func GetSmpcDb() *ethdb.LDBDatabase {
 func GetSkU1Dir() string {
 	dir := common.DefaultDataDir()
 	tmp := dir + "/dcrmdata/sk" + curEnode
-	if common.FileExist(tmp) == true {
+	if common.FileExist(tmp) {
 		return tmp
 	}
 
@@ -895,7 +895,7 @@ func CleanUpAllReshareInfo() {
 func GetAccountsDir() string {
 	dir := common.DefaultDataDir()
 	tmp := dir + "/dcrmdata/dcrmaccounts" + curEnode
-	if common.FileExist(tmp) == true {
+	if common.FileExist(tmp) {
 		return tmp
 	}
 
@@ -903,7 +903,7 @@ func GetAccountsDir() string {
 	return dir
 }
 
-//AccountLoaded Determine whether the database has been loaded
+// AccountLoaded Determine whether the database has been loaded
 func AccountLoaded() bool {
 	dir := GetAccountsDir()
 	return common.FileExist(dir)
