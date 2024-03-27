@@ -42,10 +42,10 @@ var (
 	PaillierKeyLength = 2048
 
 	// reqdataTrytimes try times of requesting data by p2p
-	reqdataTrytimes = 5
+	ReqdataTrytimes = 5
 
 	// reqdataTimeout request data timeout
-	reqdataTimeout = 60
+	ReqdataTimeout = 60
 )
 
 //------------------------------------------------------------------------
@@ -267,7 +267,7 @@ func GetENodeByFrom(from string, ac *AcceptReqAddrData) string {
 		return ""
 	}
 
-	for k, _ := range mms {
+	for k := range mms {
 		if k < len(mms) && strings.EqualFold(mms[k], from) {
 			return mms[k-1]
 		}
@@ -875,8 +875,8 @@ func smpcGenPubKey(msgprex string, account string, cointype string, ch chan inte
 //-----------------------------------------------------------------------------------------------------------------------
 
 // KeyGenerateDECDSA generate the pubkey
-//ec2
-//msgprex = hash
+// ec2
+// msgprex = hash
 func KeyGenerateDECDSA(msgprex string, ch chan interface{}, id int, cointype string) bool {
 	if id < 0 || id >= RPCMaxWorker || id >= len(workers) {
 		res := RPCSmpcRes{Ret: "", Err: GetRetErr(ErrGetWorkerIDError)}

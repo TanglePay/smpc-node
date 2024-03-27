@@ -563,7 +563,7 @@ type AcceptReShareData struct {
 // SaveAcceptReShareData save the reshare command data to local db
 func SaveAcceptReShareData(ac *AcceptReShareData) error {
 	if ac == nil {
-		return fmt.Errorf("Accept data was not found")
+		return fmt.Errorf("accept data was not found")
 	}
 
 	key := Keccak256Hash([]byte(strings.ToLower(ac.Account + ":" + ac.GroupID + ":" + ac.TSGroupID + ":" + ac.PubKey + ":" + ac.LimitNum + ":" + ac.Mode))).Hex()

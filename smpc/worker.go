@@ -19,28 +19,29 @@ package smpc
 import (
 	"container/list"
 	"fmt"
-	"sync"
-	"github.com/anyswap/FastMulThreshold-DSA/internal/common"
-	smpclib "github.com/anyswap/FastMulThreshold-DSA/smpc-lib/smpc"
 	"runtime/debug"
 	"strings"
+	"sync"
+
+	"github.com/anyswap/FastMulThreshold-DSA/internal/common"
+	smpclib "github.com/anyswap/FastMulThreshold-DSA/smpc-lib/smpc"
 )
 
 var (
-    	// RPCReqQueueCache the queue of RPCReq
+	// RPCReqQueueCache the queue of RPCReq
 	RPCReqQueueCache = make(chan RPCReq, RPCMaxQueue)
 
 	// RPCMaxWorker  max worker nums
-	RPCMaxWorker = 100 
+	RPCMaxWorker = 100
 
 	// RPCMaxQueue max counts of RPCReq in queue
-	RPCMaxQueue  = 1000
+	RPCMaxQueue = 1000
 
 	// RPCReqQueue the channel of RPCReq
-	RPCReqQueue  chan RPCReq
+	RPCReqQueue chan RPCReq
 
 	// workers the array of worker
-	workers      []*RPCReqWorker
+	workers []*RPCReqWorker
 )
 
 //------------------------------------------------------------------------------
@@ -88,19 +89,16 @@ func (d *ReqDispatcher) Run() {
 
 // dispatch received a job request and dispatch it to the worker job channel.
 func (d *ReqDispatcher) dispatch() {
-	for {
-		select {
-		case req := <-RPCReqQueue:
-			// a job request has been received
-			go func(req RPCReq) {
-				// try to obtain a worker job channel that is available.
-				// this will block until a worker is idle
-				reqChannel := <-d.WorkerPool
+	for req := range RPCReqQueue {
+		// a job request has been received
+		go func(req RPCReq) {
+			// try to obtain a worker job channel that is available.
+			// this will block until a worker is idle
+			reqChannel := <-d.WorkerPool
 
-				// dispatch the job to the worker job channel
-				reqChannel <- req
-			}(req)
-		}
+			// dispatch the job to the worker job channel
+			reqChannel <- req
+		}(req)
 	}
 
 }
@@ -180,31 +178,31 @@ type RPCReqWorker struct {
 	bd11d1            chan bool
 
 	//ed
-	bedc11       chan bool
+	bedc11      chan bool
 	msgedc11    *list.List
-	bedzk        chan bool
+	bedzk       chan bool
 	msgedzk     *list.List
-	bedd11       chan bool
+	bedd11      chan bool
 	msgedd11    *list.List
-	bedshare1    chan bool
+	bedshare1   chan bool
 	msgedshare1 *list.List
-	bedcfsb      chan bool
+	bedcfsb     chan bool
 	msgedcfsb   *list.List
-	edsave       *list.List
-	edsku1       *list.List
-	edpk         *list.List
+	edsave      *list.List
+	edsku1      *list.List
+	edpk        *list.List
 
-	bedc21    chan bool
+	bedc21   chan bool
 	msgedc21 *list.List
-	bedzkr    chan bool
+	bedzkr   chan bool
 	msgedzkr *list.List
-	bedd21    chan bool
+	bedd21   chan bool
 	msgedd21 *list.List
-	bedc31    chan bool
+	bedc31   chan bool
 	msgedc31 *list.List
-	bedd31    chan bool
+	bedd31   chan bool
 	msgedd31 *list.List
-	beds      chan bool
+	beds     chan bool
 	msgeds   *list.List
 
 	acceptReqAddrChan     chan string
@@ -219,17 +217,17 @@ type RPCReqWorker struct {
 	DNode          smpclib.DNode
 	MsgToEnode     map[string]string
 	PreSaveSmpcMsg []string
-	Msg2Peer []string
-	ApprovReplys []*ApprovReply
-	Msg56     map[string]bool
+	Msg2Peer       []string
+	ApprovReplys   []*ApprovReply
+	Msg56          map[string]bool
 }
 
 // NewRPCReqWorker new a RPCReqWorker
 func NewRPCReqWorker(workerPool chan chan RPCReq) *RPCReqWorker {
 	return &RPCReqWorker{
-		RPCReqWorkerPool:     workerPool,
-		RPCReqChannel:        make(chan RPCReq),
-		rpcquit:              make(chan bool),
+		RPCReqWorkerPool:    workerPool,
+		RPCReqChannel:       make(chan RPCReq),
+		rpcquit:             make(chan bool),
 		msgshare1:           list.New(),
 		msgzkfact:           list.New(),
 		msgzku:              list.New(),
@@ -288,34 +286,34 @@ func NewRPCReqWorker(workerPool chan chan RPCReq) *RPCReqWorker {
 		bd11d1:            make(chan bool, 1),
 
 		//ed
-		bedc11:       make(chan bool, 1),
+		bedc11:      make(chan bool, 1),
 		msgedc11:    list.New(),
-		bedzk:        make(chan bool, 1),
+		bedzk:       make(chan bool, 1),
 		msgedzk:     list.New(),
-		bedd11:       make(chan bool, 1),
+		bedd11:      make(chan bool, 1),
 		msgedd11:    list.New(),
-		bedshare1:    make(chan bool, 1),
+		bedshare1:   make(chan bool, 1),
 		msgedshare1: list.New(),
-		bedcfsb:      make(chan bool, 1),
+		bedcfsb:     make(chan bool, 1),
 		msgedcfsb:   list.New(),
-		edsave:       list.New(),
-		edsku1:       list.New(),
-		edpk:         list.New(),
-		bedc21:       make(chan bool, 1),
+		edsave:      list.New(),
+		edsku1:      list.New(),
+		edpk:        list.New(),
+		bedc21:      make(chan bool, 1),
 		msgedc21:    list.New(),
-		bedzkr:       make(chan bool, 1),
+		bedzkr:      make(chan bool, 1),
 		msgedzkr:    list.New(),
-		bedd21:       make(chan bool, 1),
+		bedd21:      make(chan bool, 1),
 		msgedd21:    list.New(),
-		bedc31:       make(chan bool, 1),
+		bedc31:      make(chan bool, 1),
 		msgedc31:    list.New(),
-		bedd31:       make(chan bool, 1),
+		bedd31:      make(chan bool, 1),
 		msgedd31:    list.New(),
-		beds:         make(chan bool, 1),
+		beds:        make(chan bool, 1),
 		msgeds:      list.New(),
 
 		sid:       "",
-		approved:      false,
+		approved:  false,
 		NodeCnt:   5,
 		ThresHold: 5,
 
@@ -330,13 +328,13 @@ func NewRPCReqWorker(workerPool chan chan RPCReq) *RPCReqWorker {
 		SmpcMsg:        make(chan string, 100),
 		MsgToEnode:     make(map[string]string),
 		PreSaveSmpcMsg: make([]string, 0),
-		Msg2Peer: make([]string, 0),
-		ApprovReplys: make([]*ApprovReply, 0),
-		Msg56:     make(map[string]bool),
+		Msg2Peer:       make([]string, 0),
+		ApprovReplys:   make([]*ApprovReply, 0),
+		Msg56:          make(map[string]bool),
 	}
 }
 
-// Clear  reset RPCReqWorker object 
+// Clear  reset RPCReqWorker object
 func (w *RPCReqWorker) Clear() {
 
 	common.Debug("======================RpcReqWorker.Clear======================", "w.id", w.id, "w.groupid", w.groupid, "key", w.sid)
@@ -693,7 +691,7 @@ func (w *RPCReqWorker) Clear() {
 	w.Msg56 = make(map[string]bool)
 }
 
-// Clear2  reset RPCReqWorker object in some elements 
+// Clear2  reset RPCReqWorker object in some elements
 func (w *RPCReqWorker) Clear2() {
 	common.Debug("======================RpcReqWorker.Clear2======================", "w.id", w.id, "w.groupid", w.groupid, "key", w.sid)
 
@@ -1073,11 +1071,11 @@ func (w *RPCReqWorker) Stop() {
 
 //----------------------------------------------------------------------------
 
-// FindWorker find worker by sid(key) that uniquely identifies the keygen/sign/reshare command 
+// FindWorker find worker by sid(key) that uniquely identifies the keygen/sign/reshare command
 func FindWorker(sid string) (*RPCReqWorker, error) {
 	defer func() {
 		if r := recover(); r != nil {
-			fmt.Errorf("FindWorker Runtime error: %v\n%v", r, string(debug.Stack()))
+			fmt.Printf("FindWorker Runtime error: %v\n%v", r, string(debug.Stack()))
 			return
 		}
 	}()
@@ -1089,28 +1087,28 @@ func FindWorker(sid string) (*RPCReqWorker, error) {
 	wid := -1
 	var wg sync.WaitGroup
 	for i := 0; i < RPCMaxWorker; i++ {
-	    wg.Add(1)
-	    go func(id int) {
-		defer wg.Done()
+		wg.Add(1)
+		go func(id int) {
+			defer wg.Done()
 
-		w := workers[id]
-		if w.sid != "" {
-		    if strings.EqualFold(w.sid, sid) {
-			   wid = id 
-		    }
-		}
-	    }(i)
+			w := workers[id]
+			if w.sid != "" {
+				if strings.EqualFold(w.sid, sid) {
+					wid = id
+				}
+			}
+		}(i)
 	}
 	wg.Wait()
 
 	if wid < 0 {
-	    return nil,fmt.Errorf("not found worker")
+		return nil, fmt.Errorf("not found worker")
 	}
 
-	return workers[wid],nil
+	return workers[wid], nil
 }
 
-// FindWorker find worker by sid(key) that uniquely identifies the keygen/sign/reshare command 
+// FindWorker find worker by sid(key) that uniquely identifies the keygen/sign/reshare command
 /*func FindWorker(sid string) (*RPCReqWorker, error) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -1149,5 +1147,3 @@ func GetWorkerID(w *RPCReqWorker) (int, error) {
 
 	return w.id, nil
 }
-
-

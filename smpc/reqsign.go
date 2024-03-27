@@ -282,7 +282,7 @@ func DoSign(sbd *SignPickData, workid int, sender string, ch chan interface{}) e
 		if !reply {
 			if tip == "get other node accept sign result timeout" {
 				ars := GetAllReplyFromGroup(w.id, sig.GroupID, RPCSIGN, sender)
-				_, err = AcceptSign(sender, from, sig.PubKey, sig.MsgHash, sig.Keytype, sig.GroupID, nonce, sig.ThresHold, sig.Mode, "true", "", "Timeout", "", "get other node accept sign result timeout", "get other node accept sign result timeout", ars, workid)
+				AcceptSign(sender, from, sig.PubKey, sig.MsgHash, sig.Keytype, sig.GroupID, nonce, sig.ThresHold, sig.Mode, "true", "", "Timeout", "", "get other node accept sign result timeout", "get other node accept sign result timeout", ars, workid)
 			}
 
 			res := RPCSmpcRes{Ret: "", Tip: tip, Err: fmt.Errorf("don't accept sign")}
@@ -314,7 +314,7 @@ func DoSign(sbd *SignPickData, workid int, sender string, ch chan interface{}) e
 
 	ars = GetAllReplyFromGroup(w.id, sig.GroupID, RPCSIGN, sender)
 	if tip == "get other node accept sign result timeout" {
-		_, err = AcceptSign(sender, from, sig.PubKey, sig.MsgHash, sig.Keytype, sig.GroupID, nonce, sig.ThresHold, sig.Mode, "true", "", "Timeout", "", tip, cherr.Error(), ars, workid)
+		AcceptSign(sender, from, sig.PubKey, sig.MsgHash, sig.Keytype, sig.GroupID, nonce, sig.ThresHold, sig.Mode, "true", "", "Timeout", "", tip, cherr.Error(), ars, workid)
 	}
 
 	if cherr != nil {
@@ -754,7 +754,7 @@ func (s *SignCurNodeInfoSort) Swap(i, j int) {
 func GetCurNodeSignInfo(geteracc string) ([]*SignCurNodeInfo, string, error) {
 	defer func() {
 		if r := recover(); r != nil {
-			fmt.Errorf("GetCurNodeSignInfo Runtime error: %v\n%v", r, string(debug.Stack()))
+			fmt.Printf("GetCurNodeSignInfo Runtime error: %v\n%v", r, string(debug.Stack()))
 			return
 		}
 	}()
@@ -779,7 +779,7 @@ func GetCurNodeSignInfo(geteracc string) ([]*SignCurNodeInfo, string, error) {
 		go func(key string, value interface{}, ch chan *SignCurNodeInfo) {
 			defer func() {
 				if r := recover(); r != nil {
-					fmt.Errorf("GetCurNodeSignInfo go Runtime error: %v\n%v", r, string(debug.Stack()))
+					fmt.Printf("GetCurNodeSignInfo go Runtime error: %v\n%v", r, string(debug.Stack()))
 				}
 				wg.Done()
 			}()
@@ -807,11 +807,6 @@ func GetCurNodeSignInfo(geteracc string) ([]*SignCurNodeInfo, string, error) {
 
 			//los := &SignCurNodeInfo{Key: key, Account: vv.Account, PubKey: vv.PubKey, MsgHash: vv.MsgHash, MsgContext: vv.MsgContext, KeyType: vv.Keytype, GroupID: vv.GroupID, Nonce: vv.Nonce, ThresHold: vv.LimitNum, Mode: vv.Mode, TimeStamp: vv.TimeStamp}
 			los := &SignCurNodeInfo{Raw: vv.Raw, Key: key, Account: vv.Account, PubKey: vv.PubKey, MsgHash: vv.MsgHash, MsgContext: vv.MsgContext, KeyType: vv.Keytype, GroupID: vv.GroupID, Nonce: vv.Nonce, ThresHold: vv.LimitNum, Mode: vv.Mode, TimeStamp: vv.TimeStamp}
-			if los == nil {
-				common.Error("=========================GetCurNodeSignInfo,current info is nil========================", "key", key)
-				return
-			}
-
 			ch <- los
 		}(string(key2), val, data)
 	}
@@ -1971,7 +1966,7 @@ func SignED(msgprex string, save string, sku1 *big.Int, message string, cointype
 	//mMtA, _ := new(big.Int).SetString(message, 16)
 	mMtA := new(big.Int).SetBytes(common.FromHex(message))
 	if mMtA == nil {
-		fmt.Errorf("==============SignED, w.groupid = %v, message = %v, message to []byte fail ==============\n", w.groupid, message)
+		fmt.Printf("==============SignED, w.groupid = %v, message = %v, message to []byte fail ==============\n", w.groupid, message)
 		res := RPCSmpcRes{Ret: "", Tip: "", Err: fmt.Errorf("message to []byte fail")}
 		ch <- res
 		return ""

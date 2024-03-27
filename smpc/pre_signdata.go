@@ -20,32 +20,33 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/anyswap/FastMulThreshold-DSA/internal/common"
-	dberrors "github.com/syndtr/goleveldb/leveldb/errors"
 	"math/big"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/anyswap/FastMulThreshold-DSA/internal/common"
+	dberrors "github.com/syndtr/goleveldb/leveldb/errors"
 )
 
 var (
-    	// PrePubDataCount the max count of pre-sign data of special groupid and pubkey
-	PrePubDataCount   = 2000
+	// PrePubDataCount the max count of pre-sign data of special groupid and pubkey
+	PrePubDataCount = 2000
 
 	// PreBip32DataCount the max count of pre-sign data of special groupid and pubkey for bip32
 	PreBip32DataCount = 4
 
 	// PreSigal map
-	PreSigal          = common.NewSafeMap(10)
+	PreSigal = common.NewSafeMap(10)
 
 	// PrePubGids map
-	PrePubGids        = common.NewSafeMap(10)
+	PrePubGids = common.NewSafeMap(10)
 )
 
 //------------------------------------------------
 
-// PreSign the data of presign cmd 
+// PreSign the data of presign cmd
 type PreSign struct {
 	Pub       string
 	InputCode string //for bip32
@@ -105,7 +106,7 @@ type PreSignData struct {
 // MarshalJSON marshal PreSignData data struct to json byte
 func (psd *PreSignData) MarshalJSON() ([]byte, error) {
 	used := "false"
-	if psd.Used == true {
+	if psd.Used {
 		used = "true"
 	}
 
@@ -271,7 +272,7 @@ func (Sbd *SignBrocastData) MarshalJSON() ([]byte, error) {
 	var phs string
 
 	if len(ph) != 0 {
-	    phs = strings.Join(ph, "|")
+		phs = strings.Join(ph, "|")
 	}
 
 	return json.Marshal(struct {
@@ -298,15 +299,15 @@ func (Sbd *SignBrocastData) UnmarshalJSON(raw []byte) error {
 	pickhash := make([]*PickHashKey, 0)
 	var phs []string
 	if sbd.PickHash != "" {
-	    phs = strings.Split(sbd.PickHash, "|")
-	    for _, v := range phs {
-		    vv := &PickHashKey{}
-		    if err := vv.UnmarshalJSON([]byte(v)); err != nil {
-			    return err
-		    }
+		phs = strings.Split(sbd.PickHash, "|")
+		for _, v := range phs {
+			vv := &PickHashKey{}
+			if err := vv.UnmarshalJSON([]byte(v)); err != nil {
+				return err
+			}
 
-		    pickhash = append(pickhash, vv)
-	    }
+			pickhash = append(pickhash, vv)
+		}
 	}
 
 	Sbd.PickHash = pickhash
@@ -335,7 +336,7 @@ func (Spd *SignPickData) MarshalJSON() ([]byte, error) {
 
 	var phs string
 	if len(ph) != 0 {
-	    phs = strings.Join(ph, "|")
+		phs = strings.Join(ph, "|")
 	}
 
 	return json.Marshal(struct {
@@ -363,15 +364,15 @@ func (Spd *SignPickData) UnmarshalJSON(raw []byte) error {
 	var phs []string
 
 	if spd.PickData != "" {
-	    phs = strings.Split(spd.PickData, "|")
-	    for _, v := range phs {
-		    vv := &PickHashData{}
-		    if err := vv.UnmarshalJSON([]byte(v)); err != nil {
-			    return err
-		    }
+		phs = strings.Split(spd.PickData, "|")
+		for _, v := range phs {
+			vv := &PickHashData{}
+			if err := vv.UnmarshalJSON([]byte(v)); err != nil {
+				return err
+			}
 
-		    pickdata = append(pickdata, vv)
-	    }
+			pickdata = append(pickdata, vv)
+		}
 	}
 
 	Spd.PickData = pickdata
@@ -855,7 +856,7 @@ func ExcutePreSignData(pre *TxDataPreSignData) {
 	}
 }
 
-// AutoPreGenSignData Automatically generate pre-sign data based on database that saving public key group information. 
+// AutoPreGenSignData Automatically generate pre-sign data based on database that saving public key group information.
 func AutoPreGenSignData() {
 	if prekey == nil {
 		return
@@ -921,7 +922,7 @@ func IsNotFoundErr(err error) bool {
 
 //--------------------------------------------------------------
 
-// GetPreSigal Return whether to continue generating pre-sign data  
+// GetPreSigal Return whether to continue generating pre-sign data
 // pub = hash256(pubkey : gid)
 // true  yes
 // false no
@@ -991,8 +992,6 @@ func NeedPreSignForBip32(pubkey string, inputcode string, gid string) (int, bool
 	case <-getIndexTimeOut.C:
 		return -1, false
 	}
-
-	return -1, false
 }
 
 // GetPrePubGids get gids by pub
@@ -1017,8 +1016,6 @@ func PutPrePubGids(pub string, gids []string) {
 		PrePubGids.WriteMap(strings.ToLower(pub), old)
 		return
 	}
-
-	old = append(old, gids...)
 	PrePubGids.WriteMap(strings.ToLower(pub), gids)
 }
 

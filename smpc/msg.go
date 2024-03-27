@@ -990,7 +990,7 @@ func GetRawType(raw string) (string, string) {
 func DisAcceptMsg(raw string, workid int) {
 	defer func() {
 		if r := recover(); r != nil {
-			fmt.Errorf("DisAcceptMsg Runtime error: %v\n%v", r, string(debug.Stack()))
+			fmt.Printf("disAcceptMsg Runtime error: %v\n%v", r, string(debug.Stack()))
 			return
 		}
 	}()
@@ -1045,7 +1045,7 @@ func MsgRun(raw string, workid int, sender string, ch chan interface{}) error {
 	case "ACCEPTRESHARE":
 		req = &ReqSmpcReshare{}
 	default:
-		return fmt.Errorf("Unsupported request type")
+		return fmt.Errorf("unsupported request type")
 	}
 
 	if !req.DoReq(raw, workid, sender, ch) {
@@ -1216,7 +1216,7 @@ func CheckGroupEnode(gid string) bool {
 func DisMsg(msg string) {
 	defer func() {
 		if r := recover(); r != nil {
-			fmt.Errorf("DisMsg Runtime error: %v\n%v", r, string(debug.Stack()))
+			fmt.Printf("DisMsg Runtime error: %v\n%v", r, string(debug.Stack()))
 			return
 		}
 	}()
@@ -1725,30 +1725,6 @@ func Find(l *list.List, msg string) bool {
 
 	return false
 }
-
-//--------------------------------------------------------------------------------
-
-// testEq  Judge whether a and B are equal
-func testEq(a, b []string) bool {
-	// If one is nil, the other must also be nil.
-	if (a == nil) != (b == nil) {
-		return false
-	}
-
-	if len(a) != len(b) {
-		return false
-	}
-
-	for i := range a {
-		if !strings.EqualFold(a[i], b[i]) {
-			return false
-		}
-	}
-
-	return true
-}
-
-//----------------------------------------------------------------
 
 // for p2p msg sig
 

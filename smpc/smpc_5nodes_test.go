@@ -18,19 +18,20 @@
 package smpc_test
 
 import (
-	"github.com/stretchr/testify/assert"
-	"testing"
 	"strconv"
+	"testing"
 
-	 "os/exec"
-	 "strings"
-	 "time"
+	"github.com/stretchr/testify/assert"
+
+	"os/exec"
+	"strings"
+	"time"
 )
 
 const (
-    	testBootNodeSh = "../bootnode-start-test.sh"
-    	testKeyGenSh = "../gsmpc-keygen-test.sh"
-	testSignSh = "../gsmpc-signing-test.sh"
+	testBootNodeSh = "../bootnode-start-test.sh"
+	testKeyGenSh   = "../gsmpc-keygen-test.sh"
+	testSignSh     = "../gsmpc-signing-test.sh"
 )
 
 /*func TestKeyGen(t *testing.T) {
@@ -42,12 +43,12 @@ const (
 	    t.Errorf("===================start bootnode fail, err = %v=======================\n",err)
 	    return
 	}
-       
+
 	t.Logf("=========================start bootnode success==========================\n")
     }()
 
     time.Sleep(time.Duration(20) * time.Second)
-   
+
     succ := false
     go func() {
 	port := strconv.Itoa(5871)
@@ -57,7 +58,7 @@ const (
 	    t.Errorf("===================test KeyGen fail, err = %v=======================\n",err)
 	    return
 	}
-       
+
 	exsit := strings.Contains(string(bytes),"pubkey generated successfully")
 	if exsit {
 	    succ = true
@@ -82,61 +83,56 @@ const (
 	    }
     }()
     <-timeout
-	
+
     assert.True(t, succ, "success")
 }
 */
 
 func TestKeyGenAndSign(t *testing.T) {
-    go func() {
-	cmd := exec.Command("/bin/sh",testBootNodeSh,"../")
-	bytes, err := cmd.Output()
-	if err != nil {
-	    t.Errorf("===================start bootnode fail, err = %v,bytes = %v=======================\n",err,string(bytes))
-	    return
-	}
-       
-	t.Logf("=========================start bootnode success==========================\n")
-    }()
+	go func() {
+		cmd := exec.Command("/bin/sh", testBootNodeSh, "../")
+		bytes, err := cmd.Output()
+		if err != nil {
+			t.Errorf("===================start bootnode fail, err = %v,bytes = %v=======================\n", err, string(bytes))
+			return
+		}
 
-    time.Sleep(time.Duration(20) * time.Second)
-   
-    succ := false
-    go func() {
-	port := strconv.Itoa(5871)
-	cmd := exec.Command("/bin/sh",testSignSh,"..",port,"","EC256K1")
-	bytes, err := cmd.Output()
-	if err != nil {
-	    t.Errorf("===================test Signing fail, err = %v=======================\n",err)
-	    return
-	}
-       
-	exsit := strings.Contains(string(bytes),"the terminal sign res is success")
-	if exsit {
-	    succ = true
-	    t.Logf("=========================test Signing success==========================\n")
-	    return
-	}
+		t.Logf("=========================start bootnode success==========================\n")
+	}()
 
-	t.Errorf("===================test Signing fail,bytes = %v=======================\n",string(bytes))
-    }()
+	time.Sleep(time.Duration(20) * time.Second)
 
-    timeout := make(chan bool, 1)
-    go func() {
-	    syncWaitTime := 570 * time.Second
-	    syncWaitTimeOut := time.NewTicker(syncWaitTime)
+	succ := false
+	go func() {
+		port := strconv.Itoa(5871)
+		cmd := exec.Command("/bin/sh", testSignSh, "..", port, "", "EC256K1")
+		bytes, err := cmd.Output()
+		if err != nil {
+			t.Errorf("===================test Signing fail, err = %v=======================\n", err)
+			return
+		}
 
-	    for {
-		    select {
-		    case <-syncWaitTimeOut.C:
-			    timeout <- true
-			    return
-		    }
-	    }
-    }()
-    <-timeout
-	
-    assert.True(t, succ, "success")
+		exsit := strings.Contains(string(bytes), "the terminal sign res is success")
+		if exsit {
+			succ = true
+			t.Logf("=========================test Signing success==========================\n")
+			return
+		}
+
+		t.Errorf("===================test Signing fail,bytes = %v=======================\n", string(bytes))
+	}()
+
+	timeout := make(chan bool, 1)
+	go func() {
+		syncWaitTime := 570 * time.Second
+		syncWaitTimeOut := time.NewTicker(syncWaitTime)
+
+		for range syncWaitTimeOut.C {
+			timeout <- true
+			return
+		}
+	}()
+	<-timeout
+
+	assert.True(t, succ, "success")
 }
-
-

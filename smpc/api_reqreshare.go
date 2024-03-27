@@ -24,12 +24,13 @@ import (
 	"time"
 
 	"container/list"
+	"strconv"
+
 	"github.com/anyswap/FastMulThreshold-DSA/internal/common"
 	"github.com/anyswap/FastMulThreshold-DSA/p2p/discover"
 	"github.com/fsn-dev/cryptoCoins/coins"
 	"github.com/fsn-dev/cryptoCoins/coins/types"
 	"github.com/fsn-dev/cryptoCoins/tools/rlp"
-	"strconv"
 )
 
 // ReqSmpcReshare reshare cmd request
@@ -38,7 +39,7 @@ type ReqSmpcReshare struct {
 
 //---------------------------------------------------------------------------------------------------
 
-// GetReplyFromGroup  Get the current reply status of the nodes in the group. About this command request 
+// GetReplyFromGroup  Get the current reply status of the nodes in the group. About this command request
 func (req *ReqSmpcReshare) GetReplyFromGroup(wid int, gid string, initiator string) []NodeReply {
 	if wid < 0 || wid >= len(workers) {
 		return nil
@@ -133,7 +134,7 @@ func (req *ReqSmpcReshare) GetReqAddrKeyByKey(key string) string {
 
 //-----------------------------------------------------------------------------------------
 
-// GetRawReply put the reply to map, select the reply sent at the latest time 
+// GetRawReply put the reply to map, select the reply sent at the latest time
 // reply.From ---> reply
 func (req *ReqSmpcReshare) GetRawReply(ret *common.SafeMap, reply *RawReply) {
 	if reply == nil || ret == nil {
@@ -158,7 +159,7 @@ func (req *ReqSmpcReshare) GetRawReply(ret *common.SafeMap, reply *RawReply) {
 
 //--------------------------------------------------------------------------------------------
 
-// CheckReply  Detect whether all nodes in the group have sent accept data 
+// CheckReply  Detect whether all nodes in the group have sent accept data
 func (req *ReqSmpcReshare) CheckReply(ac *AcceptReqAddrData, l *list.List, key string) bool {
 	if l == nil || key == "" {
 		return false
@@ -209,7 +210,7 @@ func (req *ReqSmpcReshare) CheckReply(ac *AcceptReqAddrData, l *list.List, key s
 
 //------------------------------------------------------------------------------------------------
 
-// DoReq   1.Parse the reshare command and implement the process 2.analyze the accept data   
+// DoReq   1.Parse the reshare command and implement the process 2.analyze the accept data
 func (req *ReqSmpcReshare) DoReq(raw string, workid int, sender string, ch chan interface{}) bool {
 	if raw == "" || workid < 0 || sender == "" {
 		res := RPCSmpcRes{Ret: "", Tip: "do req fail.", Err: fmt.Errorf("do req fail")}
@@ -286,9 +287,9 @@ func (req *ReqSmpcReshare) DoReq(raw string, workid int, sender string, ch chan 
 		timeout := make(chan bool, 1)
 		go func(wid int) {
 			curEnode = discover.GetLocalID().String() //GetSelfEnode()
-			ato,err := strconv.Atoi(rh.AcceptTimeOut)
+			ato, err := strconv.Atoi(rh.AcceptTimeOut)
 			if err != nil || rh.AcceptTimeOut == "" {
-				ato = 600 
+				ato = 600
 			}
 
 			agreeWaitTime := time.Duration(ato) * time.Second
@@ -353,7 +354,7 @@ func (req *ReqSmpcReshare) DoReq(raw string, workid int, sender string, ch chan 
 		if !reply {
 			if tip == "get other node accept reshare result timeout" {
 				ars := GetAllReplyFromGroup(workid, rh.GroupID, RPCRESHARE, sender)
-				_, err = AcceptReShare(sender, from, rh.GroupID, rh.TSGroupID, rh.PubKey, rh.ThresHold, rh.Mode, "false", "", "Timeout", "", "get other node accept reshare result timeout", "get other node accept reshare result timeout", ars, workid)
+				AcceptReShare(sender, from, rh.GroupID, rh.TSGroupID, rh.PubKey, rh.ThresHold, rh.Mode, "false", "", "Timeout", "", "get other node accept reshare result timeout", "get other node accept reshare result timeout", ars, workid)
 			}
 
 			res2 := RPCSmpcRes{Ret: "", Tip: tip, Err: fmt.Errorf("don't accept reshare")}
@@ -372,7 +373,7 @@ func (req *ReqSmpcReshare) DoReq(raw string, workid int, sender string, ch chan 
 
 		if tip == "get other node accept reshare result timeout" {
 			ars := GetAllReplyFromGroup(workid, rh.GroupID, RPCRESHARE, sender)
-			_, err = AcceptReShare(sender, from, rh.GroupID, rh.TSGroupID, rh.PubKey, rh.ThresHold, rh.Mode, "false", "", "Timeout", "", "get other node accept reshare result timeout", "get other node accept reshare result timeout", ars, workid)
+			AcceptReShare(sender, from, rh.GroupID, rh.TSGroupID, rh.PubKey, rh.ThresHold, rh.Mode, "false", "", "Timeout", "", "get other node accept reshare result timeout", "get other node accept reshare result timeout", ars, workid)
 		}
 
 		if cherr != nil {
@@ -498,7 +499,7 @@ func (req *ReqSmpcReshare) CheckTxData(txdata []byte, from string, nonce uint64)
 			return "", "", "", nil, fmt.Errorf("check group node count error")
 		}
 
-		ato,err := strconv.Atoi(rh.AcceptTimeOut)
+		ato, err := strconv.Atoi(rh.AcceptTimeOut)
 		if err != nil || rh.AcceptTimeOut == "" {
 			ato = 600
 		}
@@ -544,7 +545,7 @@ func (req *ReqSmpcReshare) CheckTxData(txdata []byte, from string, nonce uint64)
 
 //---------------------------------------------------------------------------------------------
 
-// GetReshareRawValue get from/special tx data type/timestamp from reshare command data 
+// GetReshareRawValue get from/special tx data type/timestamp from reshare command data
 func GetReshareRawValue(raw string) (string, string, string) {
 	if raw == "" {
 		return "", "", ""
@@ -582,8 +583,8 @@ func GetReshareRawValue(raw string) (string, string, string) {
 	return from.Hex(), txtype, timestamp
 }
 
-// CheckReshareDulpRawReply Filter duplicate accept data (command data is also a kind of accept data), 
-// Take the latest accept data as the final data 
+// CheckReshareDulpRawReply Filter duplicate accept data (command data is also a kind of accept data),
+// Take the latest accept data as the final data
 func CheckReshareDulpRawReply(raw string, l *list.List) bool {
 	if l == nil || raw == "" {
 		return false
@@ -628,7 +629,7 @@ func CheckReshareDulpRawReply(raw string, l *list.List) bool {
 	return true
 }
 
-// DisAcceptMsg  Collect accept data of nodes in the group, after collection, continue the MPC process 
+// DisAcceptMsg  Collect accept data of nodes in the group, after collection, continue the MPC process
 func (req *ReqSmpcReshare) DisAcceptMsg(raw string, workid int, key string) {
 	if raw == "" || workid < 0 || workid >= len(workers) || key == "" {
 		return
@@ -671,5 +672,3 @@ func (req *ReqSmpcReshare) DisAcceptMsg(raw string, workid int, key string) {
 		workers[ac.WorkID].acceptReShareChan <- "go on"
 	}
 }
-
-

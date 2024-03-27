@@ -28,6 +28,10 @@ import (
 	"compress/zlib"
 	"container/list"
 	"encoding/gob"
+	"errors"
+	"io"
+	"sort"
+
 	"github.com/anyswap/FastMulThreshold-DSA/crypto/sha3"
 	"github.com/anyswap/FastMulThreshold-DSA/internal/common"
 	"github.com/anyswap/FastMulThreshold-DSA/internal/common/hexutil"
@@ -35,9 +39,6 @@ import (
 	smpclib "github.com/anyswap/FastMulThreshold-DSA/smpc-lib/smpc"
 	"github.com/fsn-dev/cryptoCoins/coins/types"
 	"github.com/fsn-dev/cryptoCoins/tools/rlp"
-	"io"
-	"errors"
-	"sort"
 )
 
 //---------------------------------------------------------------------------
@@ -63,10 +64,10 @@ type RPCSmpcRes struct {
 	Err error
 }
 
-// GetChannelValue get channel value within the specified timeout 
+// GetChannelValue get channel value within the specified timeout
 func GetChannelValue(t int, obj interface{}) (string, string, error) {
-    	if t <= 0 || obj == nil {
-	    return "","",errors.New("param error")
+	if t <= 0 || obj == nil {
+		return "", "", errors.New("param error")
 	}
 
 	timeout := make(chan bool, 1)
@@ -129,8 +130,8 @@ func GetChannelValue(t int, obj interface{}) (string, string, error) {
 
 // Encode2 encode obj to string
 func Encode2(obj interface{}) (string, error) {
-    	if obj == nil {
-	    return "",errors.New("param error")
+	if obj == nil {
+		return "", errors.New("param error")
 	}
 
 	switch ch := obj.(type) {
@@ -175,8 +176,8 @@ func Encode2(obj interface{}) (string, error) {
 
 // Decode2 decode string to obj by data type
 func Decode2(s string, datatype string) (interface{}, error) {
-    	if s == "" || datatype == "" {
-	    return nil,errors.New("param error")
+	if s == "" || datatype == "" {
+		return nil, errors.New("param error")
 	}
 
 	if datatype == "PubKeyData" {
@@ -297,17 +298,13 @@ func (h ByteHash) Hex() string { return hexutil.Encode(h[:]) }
 // Keccak256Hash calculates and returns the Keccak256 hash of the input data,
 // converting it to an internal Hash data structure.
 func Keccak256Hash(data ...[]byte) (h ByteHash) {
-    	if data == nil {
-	    return h
+	if data == nil {
+		return h
 	}
 
 	d := sha3.NewKeccak256()
 	for _, b := range data {
-		_, err := d.Write(b)
-		if err != nil {
-			return h
-		}
-		if err != nil {
+		if _, err := d.Write(b); err != nil {
 			return h
 		}
 	}
@@ -317,10 +314,10 @@ func Keccak256Hash(data ...[]byte) (h ByteHash) {
 
 //----------------------------------------------------------------------------------------------
 
-// DoubleHash  The EnodeID is converted into a hash value according to different keytypes 
+// DoubleHash  The EnodeID is converted into a hash value according to different keytypes
 func DoubleHash(id string, keytype string) *big.Int {
-    	if id == "" || keytype == "" {
-	    return nil
+	if id == "" || keytype == "" {
+		return nil
 	}
 
 	// Generate the random num
@@ -361,10 +358,10 @@ func DoubleHash(id string, keytype string) *big.Int {
 	return digestBigInt
 }
 
-// GetIDs Convert each ID into a hash value according to different keytypes and put it into an array for sorting 
+// GetIDs Convert each ID into a hash value according to different keytypes and put it into an array for sorting
 func GetIDs(keytype string, groupid string) smpclib.SortableIDSSlice {
-    	if keytype == "" || groupid == "" {
-	    return nil
+	if keytype == "" || groupid == "" {
+		return nil
 	}
 
 	var ids smpclib.SortableIDSSlice
@@ -381,60 +378,60 @@ func GetIDs(keytype string, groupid string) smpclib.SortableIDSSlice {
 
 // GetNodeUID get current node uid,gid is the `keygen gid`
 // return (index,UID)
-func GetNodeUID(EnodeID string,keytype string,gid string) (int,*big.Int) {
-    if EnodeID == "" || keytype == "" || gid == "" {
-	return -1,nil
-    }
-
-    uid := DoubleHash(EnodeID,keytype)
-    if uid == nil {
-	return -1,nil
-    }
-    
-    _, nodes := GetGroup(gid)
-    others := strings.Split(nodes, common.Sep2)
-    
-    ids := GetIDs(keytype,gid)
-    if len(ids) == 0 {
-	return -1,nil
-    }
-
-    for k,v := range ids {
-	if v.Cmp(uid) == 0 {
-	    if (k+1) <= len(others) {
-		return k,big.NewInt(int64(k+1))
-	    }
+func GetNodeUID(EnodeID string, keytype string, gid string) (int, *big.Int) {
+	if EnodeID == "" || keytype == "" || gid == "" {
+		return -1, nil
 	}
-    }
 
-    return -1,nil
+	uid := DoubleHash(EnodeID, keytype)
+	if uid == nil {
+		return -1, nil
+	}
+
+	_, nodes := GetGroup(gid)
+	others := strings.Split(nodes, common.Sep2)
+
+	ids := GetIDs(keytype, gid)
+	if len(ids) == 0 {
+		return -1, nil
+	}
+
+	for k, v := range ids {
+		if v.Cmp(uid) == 0 {
+			if (k + 1) <= len(others) {
+				return k, big.NewInt(int64(k + 1))
+			}
+		}
+	}
+
+	return -1, nil
 }
 
 // GetGroupNodeUIDs get the uids of node in group subgid
 // gid is the `keygen gid`
-func GetGroupNodeUIDs(keytype string,gid string,subgid string) smpclib.SortableIDSSlice {
-    if keytype == "" || gid == "" || subgid == "" {
-	return nil
-    }
+func GetGroupNodeUIDs(keytype string, gid string, subgid string) smpclib.SortableIDSSlice {
+	if keytype == "" || gid == "" || subgid == "" {
+		return nil
+	}
 
-    allids := GetIDs(keytype,gid)
+	allids := GetIDs(keytype, gid)
 
-    var ids smpclib.SortableIDSSlice
-    _, nodes := GetGroup(subgid)
-    others := strings.Split(nodes, common.Sep2)
-    for _, v := range others {
-	    node2 := ParseNode(v) //bug??
-	    id := DoubleHash(node2, keytype)
-	    for kk,vv := range allids {
-		if vv.Cmp(id) == 0 {
-		    ids = append(ids,big.NewInt(int64(kk+1)))
-		    break
+	var ids smpclib.SortableIDSSlice
+	_, nodes := GetGroup(subgid)
+	others := strings.Split(nodes, common.Sep2)
+	for _, v := range others {
+		node2 := ParseNode(v) //bug??
+		id := DoubleHash(node2, keytype)
+		for kk, vv := range allids {
+			if vv.Cmp(id) == 0 {
+				ids = append(ids, big.NewInt(int64(kk+1)))
+				break
+			}
 		}
-	    }
-    }
+	}
 
-    sort.Sort(ids)
-    return ids
+	sort.Sort(ids)
+	return ids
 }
 
 //-----------------------------------------------------------------------------
@@ -526,9 +523,8 @@ func CheckRaw(raw string) (string, string, string, interface{}, error) {
 	case "ACCEPTRESHARE":
 		smpcreq = &ReqSmpcReshare{}
 	default:
-		return "", "", "", nil, fmt.Errorf("Unsupported request type")
+		return "", "", "", nil, fmt.Errorf("unsupported request type")
 	}
 
 	return smpcreq.CheckTxData(tx.Data(), from.Hex(), tx.Nonce())
 }
-
