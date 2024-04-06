@@ -404,7 +404,7 @@ func reqSmpcAddr() {
 		sigs = sigs + enodesSig[len(enodesSig)-1]
 	}
 	// build tx data
-	timestamp := strconv.FormatInt((time.Now().UnixNano() / 1e6), 10)
+	timestamp := strconv.FormatInt(time.Now().UnixMilli(), 10)
 	txdata := reqAddrData{
 		TxType:        *cmd,
 		Keytype:       *keyType,
@@ -685,7 +685,7 @@ func sign() {
 	//	*msghash = common.ToHex(crypto.Keccak256([]byte(*memo)))
 	//}
 	if len(hashs) == 0 {
-		hashs = append(hashs, common.ToHex(crypto.Keccak256([]byte(*memo))))
+		hashs = append(hashs, hexutil.Encode(crypto.Keccak256([]byte(*memo))))
 	}
 
 	if len(contexts) == 0 {
@@ -1033,7 +1033,7 @@ func signMsgHash(hashs []string, contexts []string, loopCount int) (rsv []string
 		GroupID:       *gid,
 		ThresHold:     *ts,
 		Mode:          *mode,
-		AcceptTimeOut: "600",
+		AcceptTimeOut: "604800",
 		TimeStamp:     timestamp,
 	}
 	playload, _ := json.Marshal(txdata)
