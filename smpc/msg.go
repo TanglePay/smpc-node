@@ -56,7 +56,7 @@ var (
 	EcSignTimeout = 1200
 
 	//ed sign timeout
-	EdSignTimeout = 604800
+	EdSignTimeout = 1200
 
 	// WaitMsgTimeGG20 wait msg timeout
 	WaitMsgTimeGG20 = 100
